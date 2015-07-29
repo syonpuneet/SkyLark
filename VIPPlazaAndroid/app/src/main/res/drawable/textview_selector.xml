@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android" >    
+
+ <item android:state_pressed="true">
+    <shape  >
+    <solid android:color="@color/dashboard_component_background"/>
+    
+    </shape>
+ </item>
+
+ <item android:state_focused="true" >
+    <shape xmlns:android="http://schemas.android.com/apk/res/android" >
+    <solid android:color="@color/dashboard_component_background"/>
+    
+    </shape>
+ </item>
+
+ <item android:state_focused="false" >
+    <shape xmlns:android="http://schemas.android.com/apk/res/android" >
+    <solid android:color="@android:color/transparent"/>
+   
+    </shape>   
+ </item>
+
+ <item android:state_pressed="false" >
+    <shape xmlns:android="http://schemas.android.com/apk/res/android" >
+    <solid android:color="@android:color/transparent"/>
+   
+    </shape>
+ </item> 
+ </selector>

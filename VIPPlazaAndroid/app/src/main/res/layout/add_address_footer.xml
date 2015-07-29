@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:padding="@dimen/component_padding"
+    android:orientation="vertical"
+    android:layout_height="match_parent">
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Or"
+        android:layout_marginTop="@dimen/component_padding_20"
+        android:layout_gravity="center"
+        android:id="@+id/txt_or" />
+
+    <Button
+        android:id="@+id/btn_add_address"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        android:layout_marginTop="@dimen/component_padding_20"
+        android:background="@drawable/login_button_selector"
+        android:text="@string/txt_add_address"
+        android:textColor="@color/white" />
+
+
+
+</LinearLayout>

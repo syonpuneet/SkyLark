@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:orientation="vertical"
+    android:padding="@dimen/component_padding"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Medium Text"
+        android:textColor="@color/btn_background_color"
+        android:id="@+id/address_type" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:background="@drawable/whit_edit_text"
+        android:padding="@dimen/component_padding"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="wrap_content"
+
+            android:layout_marginTop="@dimen/component_padding"
+
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/small_padding"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+
+                android:id="@+id/name" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:layout_marginTop="@dimen/small_padding"
+
+                android:id="@+id/street" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/small_padding"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+
+                android:id="@+id/city" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+
+                android:layout_marginTop="@dimen/small_padding"
+                android:id="@+id/telehone" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/small_padding"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+
+                android:id="@+id/postal_code" />
+
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="wrap_content"
+            android:layout_gravity="right"
+            android:id="@+id/edit_btn"
+            android:background="@drawable/textview_selector"
+            android:padding="@dimen/component_padding"
+            android:layout_height="wrap_content">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_menu_edit"
+                android:clickable="false"
+                android:id="@+id/imageView2" />
+        </LinearLayout>
+    </FrameLayout>
+
+</LinearLayout>

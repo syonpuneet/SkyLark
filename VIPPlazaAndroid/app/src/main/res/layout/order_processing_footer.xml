@@ -1,0 +1,340 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:orientation="vertical"
+    android:padding="@dimen/small_padding"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/whit_edit_text"
+        android:padding="@dimen/component_padding"
+        android:layout_marginBottom="@dimen/component_padding"
+        android:orientation="vertical">
+
+        <TableLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:weightSum="1"
+                android:layout_height="match_parent">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:text="@string/txt_subtotal"
+                    android:layout_weight=".5"
+                    android:id="@+id/textView15" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight=".5"
+                    android:gravity="right"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:id="@+id/txt_subtotal" />
+            </TableRow>
+
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:weightSum="1"
+                android:layout_marginTop="@dimen/component_padding"
+                android:layout_height="match_parent">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:text="@string/txt_delivery"
+                    android:layout_weight=".5"
+                     />
+
+                <TextView
+                    android:id="@+id/txt_delivery"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight=".5"
+                    android:gravity="right"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+
+                     />
+            </TableRow>
+
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:weightSum="1"
+                android:layout_marginTop="@dimen/component_padding"
+                android:layout_height="match_parent">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:text="@string/txt_discount"
+                    android:layout_weight=".5"
+                    />
+
+                <TextView
+                    android:id="@+id/txt_discount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight=".5"
+                    android:gravity="right"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+
+                    />
+            </TableRow>
+
+        </TableLayout>
+    </LinearLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:background="@drawable/whit_edit_text"
+        android:layout_marginTop="@dimen/component_padding_20"
+        android:padding="@dimen/component_padding"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/component_padding_20"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="@string/txt_total"
+            android:textColor="@color/btn_background_color"
+            android:id="@+id/textView21" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:textColor="@color/btn_background_color"
+            android:layout_marginRight="@dimen/component_padding"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="Medium Text"
+            android:id="@+id/cart_total" />
+    </RelativeLayout>
+
+
+
+
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="@string/txt_shipping_address"
+        android:layout_marginTop="@dimen/component_padding"
+        android:textColor="@color/btn_background_color"
+         />
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:background="@drawable/whit_edit_text"
+        android:padding="@dimen/component_padding"
+        android:layout_marginTop="@dimen/small_padding"
+        android:layout_height="wrap_content">
+
+
+        <TableLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:weightSum="1"
+                android:layout_height="match_parent">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:text="@string/txt_name"
+                    android:layout_weight=".5"
+                     />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight=".5"
+
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:id="@+id/txt_name" />
+            </TableRow>
+
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:weightSum="1"
+                android:layout_marginTop="@dimen/component_padding"
+                android:layout_height="match_parent">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:text="@string/txt_wide_street"
+                    android:layout_weight=".5"
+                    />
+
+                <TextView
+                    android:id="@+id/txt_wide_street"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight=".5"
+
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+
+                    />
+            </TableRow>
+
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:weightSum="1"
+                android:layout_marginTop="@dimen/component_padding"
+                android:layout_height="match_parent">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:text="@string/txt_region"
+                    android:layout_weight=".5"
+                    />
+
+                <TextView
+                    android:id="@+id/txt_region"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight=".5"
+
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+
+                    />
+            </TableRow>
+
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:weightSum="1"
+                android:layout_marginTop="@dimen/component_padding"
+                android:layout_height="match_parent">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:text="@string/txt_tetephone"
+                    android:layout_weight=".5"
+                    />
+
+                <TextView
+                    android:id="@+id/txt_tetephone"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight=".5"
+
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+
+                    />
+            </TableRow>
+
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:weightSum="1"
+                android:layout_marginTop="@dimen/component_padding"
+                android:layout_height="match_parent">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:text="@string/txt_fax"
+                    android:layout_weight=".5"
+                    />
+
+                <TextView
+                    android:id="@+id/txt_fax"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight=".5"
+                    android:gravity="right"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+
+                    />
+            </TableRow>
+        </TableLayout>
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="@string/activity_shipping_method"
+        android:layout_marginTop="@dimen/component_padding"
+        android:textColor="@color/btn_background_color"
+        />
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:background="@drawable/whit_edit_text"
+        android:padding="@dimen/component_padding"
+        android:layout_marginTop="@dimen/small_padding"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:id="@+id/shipping_method" />
+    </LinearLayout>
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="@string/activity_payment_methods"
+        android:layout_marginTop="@dimen/component_padding"
+        android:textColor="@color/btn_background_color"
+        />
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:background="@drawable/whit_edit_text"
+        android:padding="@dimen/component_padding"
+        android:layout_marginTop="@dimen/small_padding"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+
+            android:id="@+id/payment_methods" />
+    </LinearLayout>
+
+
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/component_padding_20"
+        android:background="@drawable/login_button_selector"
+        android:textColor="@color/white"
+        android:text="@string/txt_order"
+
+        android:id="@+id/btn_order" />
+</LinearLayout>

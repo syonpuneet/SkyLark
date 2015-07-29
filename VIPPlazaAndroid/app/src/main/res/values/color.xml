@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="toolbar_color">#000000</color>
+    <color name="status_bar_color">#000000</color>
+    <color name="toolbar_text_color">#ffffff</color>
+    <color name="white">#ffffff</color>
+    <color name="black">#000000</color>
+    <color name="trans_black">#90000000</color>
+    <color name="divider_color">#B2B2B2</color>
+    <color name="product_count_color">#727272</color>
+    <color name="red_text_color">#C00000</color>
+
+
+
+    <color name="edit_text_color">#FFFFFF</color>
+    <color name="btn_background_color">#CA8800</color>
+    <color name="btn_background_color_clicked">#ac7401</color>
+
+    <color name="login_btn_background_color">#333333</color>
+    <color name="login_btn_background_color_clicked">#494949</color>
+
+
+    <color name="home_bottom_strip">#CB9B39</color>
+
+    <color name="join_now_color">#EB1F1F</color>
+    <color name="screen_back_ground">#EDEDED</color>
+    <color name="voted_color">#318300</color>
+
+    <color name="filter_edit_text">#EAEAEA</color>
+
+    <color name="text_color">#ffffff</color>
+    <color name="forgot_password_text_color">#F9A0A7</color>
+    <color name="or_text_color">#808080</color>
+    <color name="signup_screen_text_color">#606060</color>
+    <color name="signup_divider_color">#EDEDED</color>
+    <color name="splash_login_color">#3B5999</color>
+    <color name="splash_login_color_clicked">#0077CC</color>
+    <color name="text_color_background">#D6D6D6</color>
+    <color name="action_btn_background">#919191</color>
+    <color name="pending_color">#FF9C00</color>
+    <color name="processing_color">#2E9CC0</color>
+
+    <color name="fail_color">#EB1F1F</color>
+    <color name="border_color">#e3e3e3</color>
+    <color name="search_border_color">#ACAAAB</color>
+
+    <color name="action_bar_color">#2E9CC0</color>
+    <color name="submit_btn_color">#0597C5</color>
+    <color name="submit_btn_clicked_color">#1a8db1</color>
+    <color name="verify_section_color">#DFF0D8</color>
+    <color name="green_color">#798847</color>
+    <color name="dashboard_component_background">#E3E3E3</color>
+    <color name="dashboard_text_color">#44B3D3</color>
+    <color name="dark_slate_gray">#2F4F4F</color>
+    <color name="gray_2">#AFAFAF</color>
+    <color name="gray_1">#E9E9E9</color>
+    <color name="ll_back">#252525</color>
+    <color name="ll_divider">#424242</color>
+    <color name="drawer_text_color">#a5a5a5</color>
+
+    <color name="show_all">#008FC1</color>
+    <color name="show_all_clicked">#4584EE</color>
+    <color name="light_gray">#F3F3F3</color>
+    <color name="black_circle_color">#313131</color>
+
+</resources>

@@ -1,0 +1,211 @@
+<resources>
+    <string name="app_name">VIP Plaza</string>
+
+    <string name="pref_name">VIP Plaza</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_cart">Cart</string>
+
+
+    <string name="facebook_app_id">828734757221781</string>
+
+
+    <string-array name="nav_drawer_items">
+        <item>BOOK A DELIVERY</item>
+        <item>MY DELIVERIES</item>
+        <item>DELIVERIES ADDRESSED TO ME</item>
+        <item>CHANGE PASSWORD</item>
+        <item>EDIT PROFILE</item>
+        <item>CONTACT</item>
+        <item>ABOUT US</item>
+        <item>TERMS &amp;  CONDITIONS</item>
+        <item>FAQ\'S</item>
+        <item>LOGOUT</item>
+    </string-array>
+
+
+    <string-array name="gender_arr">
+        <item>MALE</item>
+        <item>FEMALE</item>
+
+    </string-array>
+
+
+    <string-array name="product_qty">
+        <item>1</item>
+        <item>2</item>
+
+    </string-array>
+
+    <string-array name="sorting_arr">
+        <item>posisi</item>
+        <item>Harga terendah-tertinggi</item>
+        <item>Harga tertinggi-terendah</item>
+        <item>urutan Nama (a-z) </item>
+        <item>urutan Nama (z-a)</item>
+
+
+    </string-array>
+
+
+
+    <string name="activity_shipping_method">Metode Pengiriman</string>
+    <string name="activity_address_book">Buku alamat</string>
+    <string name="activity_payment_methods">Metode Pembayaran</string>
+    <string name="activity_shopping_bag"> Tas Belanja</string>
+    <string name="activity_my_account"> Akun saya</string>
+
+
+
+
+
+    <string name="server_eroor">Server not responding, please try again</string>
+    <string name="alert_no_internet">Internet connection not found</string>
+    <string name="alert_password">Password is at least 6 characters long</string>
+    <string name="error_not_valid_email">Please enter a valid email address </string>
+    <string name="error_first_name">First name cannot empty</string>
+    <string name="error_last_name">Last name cannot empty  </string>
+    <string name="error_old_password"> Password saat ini invalid  </string>
+    <string name="error_new_password"> Password saat ini invalid  </string>
+    <string name="error_confirm_password">Pastikan password anda sesuai.  </string>
+    <string name="txt_select_size">Please select size</string>
+
+    <string name="txt_max_allowed">The maximum quantity allowed for purchase is 2.</string>
+    <string name="txt_not_available">The requested quantity is not available.</string>
+
+
+    <!--address fillup error-->
+    <string name="error_wide_street1">Alamat cannot empty  </string>
+    <string name="error_phone_no">Invalid phone number</string>
+
+
+
+    <string name="no_product">No Product Found </string>
+
+    <string name="please_wait">Please Wait... </string>
+    <string name="ok">OK</string>
+    <string name="close">Close</string>
+
+    <string name="txt_faq">FAQ</string>
+    <string name="txt_kebijakan">Kebijakan Privasi</string>
+    <string name="txt_about">Tentang Kami</string>
+
+
+
+
+    <!--login signup-->
+    <string name="txt_profile">Profile</string>
+    <string name="txt_logout">Logout</string>
+    <string name="txt_login">Login</string>
+    <string name="txt_register">Register</string>
+    <string name="txt_email">Email</string>
+    <string name="txt_password">Password</string>
+    <string name="txt_forgot_password">Forgot Password?</string>
+    <string name="txt_male">Male</string>
+    <string name="txt_female">Female</string>
+    <string name="txt_returning_customer">Returning customers</string>
+    <string name="txt_header1">Sign in to your account to checkout, track your orders or write reviews.</string>
+    <string name="txt_new_customer">New customers</string>
+    <string name="txt_header2">Create a new account now to make shopping quicker and easier.</string>
+
+    <!--home deal-->
+    <string name="txt_sisa_waktu">SISA WAKTU</string>
+
+
+    <string name="txt_price_tag">Rp</string>
+    <string name="txt_sku_tag">SKU:</string>
+    <string name="txt_ssku_tag">SSKU:</string>
+    <string name="txt_number">Jumlah</string>
+    <string name="txt_size_tag">Ukuran:</string>
+    <string name="txt_out_of_stock">STOK HABIS</string>
+    <string name="txt_tag_free">FREE</string>
+    <string name="txt_tag_qty">Kuantitas</string>
+
+
+
+
+
+
+
+    <!--profile fragment-->
+    <string name="txt_account">Account</string>
+    <string name="txt_orders">Orders</string>
+
+
+    <string name="txt_account_header">Anda dapat melihat aktivitas terbaru dan mengubah informasi akun anda.</string>
+    <string name="txt_first_name">Nama Depan</string>
+    <string name="txt_last_name">Nama Belakang</string>
+    <string name="txt_email1">Alamat Email</string>
+    <string name="txt_gender">Jenis Kelamin</string>
+    <string name="txt_edit">Edit</string>
+    <string name="txt_add_address">Add Address</string>
+    <string name="txt_save">Save</string>
+    <string name="txt_submit">SIMPAN</string>
+    <string name="txt_hello">Halo,</string>
+    <string name="txt_change_password">UBAH PASSWORD</string>
+    <string name="txt_old_password">Password saat ini</string>
+    <string name="txt_new_password">Kata sandi baru</string>
+    <string name="txt_confirm_password">Memastikan password baru</string>
+    <string name="txt_product_tag">Produk</string>
+
+    <!--<string name="txt_price_assending">Harga terendah-tertinggi</string>-->
+    <!--<string name="txt_price_desending">Harga tertinggi-terendah</string>-->
+
+    <string name="txt_price_assending">Filter Harga (L-H)</string>
+    <string name="txt_price_desending">Filter Harga (H-L)</string>
+    <string name="txt_name_assending">Urutan Nama (a-z)</string>
+    <string name="txt_name_desending">Urutan Nama (z-a)</string>
+
+
+    <!--product detail-->
+    <string name="txt_details">Details</string>
+    <string name="txt_size">Size</string>
+    <string name="txt_add_to_bag">Add to bag</string>
+
+    <!--cart activity-->
+    <string name="txt_coupan_header">Tambahkan Kode Diskon</string>
+    <string name="txt_apply">GUNAKAN</string>
+    <string name="txt_total">Total</string>
+    <string name="txt_process_checkout">PROCESS CHECKOUT</string>
+    <string name="txt_remove_product">Hapus barang</string>
+
+
+
+        <!--address fillup-->
+    <string name="txt_address_header">Tambahkan alamat baru</string>
+    <string name="txt_wide_street">Alamat</string>
+    <string name="txt_wide">Alamat 2</string>
+    <string name="txt_country">Provinsi</string>
+    <string name="txt_region">Kota</string>
+    <string name="txt_city">Kecamatan </string>
+    <string name="txt_postal_code">ZIP / Kode Pos</string>
+    <string name="txt_tetephone">Nomor Hp</string>
+    <string name="txt_fax">Nomor Lain</string>
+    <string name="txt_next">Lanjutkan</string>
+
+
+    <!--address book-->
+    <string name="txt_shipping_address_header">Alamat penagihan saat ini</string>
+    <string name="txt_deliver_address_header">Alamat pengiriman saat ini</string>
+
+
+    <!--order processing-->
+    <string name="txt_subtotal">Subtotal</string>
+    <string name="txt_delivery">Pengiriman</string>
+    <string name="txt_discount">Diskon</string>
+    <string name="txt_name">Nama</string>
+    <string name="txt_shipping_address">Alamat Pengiriman</string>c
+    <string name="txt_billing_address">Alamat Penagihan</string>
+    <string name="txt_order">PESAN</string>
+
+
+    <!--order listing-->
+    <string name="txt_order_no">Nomor Pesanan</string>
+    <string name="txt_date">Tanggal</string>
+    <string name="txt_buyer_name">Nama Pemesan</string>
+    <string name="txt_total_pensan">Total Pesanan</string>
+    <string name="txt_status">Status Pesanan</string>c
+
+
+
+</resources>

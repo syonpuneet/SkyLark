@@ -1,0 +1,2 @@
+include ':app', ':FacebookSDK'
+include ':viewPageTester'

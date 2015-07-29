@@ -1,0 +1,176 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/main_parent_view"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <include layout="@layout/toolbar" />
+
+    <android.support.v4.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/drawer_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <FrameLayout
+            android:id="@+id/content_frame"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <RelativeLayout
+            android:id="@+id/relative_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="start">
+
+            <RelativeLayout
+                android:id="@+id/list_top"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:background="@color/ll_back"
+                android:layout_alignParentTop="true">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                   android:gravity="center_vertical"
+                    android:text="@string/txt_login"
+                    android:padding="@dimen/component_padding"
+                    android:drawableLeft="@drawable/ic_ab_back_holo_dark_am"
+                    android:drawablePadding="@dimen/small_padding"
+                    android:textColor="@color/white"
+                    android:background="@drawable/textview_selector"
+                    android:id="@+id/header_text" />
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_below="@+id/header_text"
+                    android:background="@color/white">
+
+                </View>
+
+            </RelativeLayout>
+
+
+            <ListView
+                android:id="@+id/left_drawer"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_below="@+id/list_top"
+                android:background="@color/ll_back"
+                android:choiceMode="singleChoice"
+                android:divider="@color/ll_divider"
+                android:dividerHeight="1dp" />
+
+            <RelativeLayout
+                android:id="@+id/list_bottom"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/ll_back"
+                android:layout_marginTop="@dimen/component_padding_20"
+                android:layout_alignParentBottom="true">
+
+
+
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+
+                    <LinearLayout
+                        android:orientation="vertical"
+                        android:layout_width="match_parent"
+                        android:padding="@dimen/component_padding"
+                        android:id="@+id/btn_faq"
+                        android:layout_height="wrap_content">
+
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textAppearance="?android:attr/textAppearanceMedium"
+                            android:text="@string/txt_faq"
+                            android:textColor="@color/drawer_text_color"
+
+                            />
+
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:orientation="vertical"
+                        android:layout_width="match_parent"
+                        android:layout_marginTop="@dimen/small_padding"
+                        android:background="@color/divider_color"
+                        android:layout_height="1dp"></LinearLayout>
+                    <LinearLayout
+                        android:orientation="vertical"
+                        android:layout_width="match_parent"
+                        android:padding="@dimen/component_padding"
+                        android:id="@+id/btn_privacy"
+                        android:layout_height="wrap_content">
+
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textAppearance="?android:attr/textAppearanceMedium"
+                            android:text="@string/txt_kebijakan"
+                            android:textColor="@color/drawer_text_color"
+                            />
+
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:orientation="vertical"
+                        android:layout_width="match_parent"
+                        android:layout_marginTop="@dimen/small_padding"
+                        android:background="@color/divider_color"
+                        android:layout_height="1dp"></LinearLayout>
+
+
+
+                    <LinearLayout
+                        android:orientation="vertical"
+                        android:layout_width="match_parent"
+                        android:padding="@dimen/component_padding"
+                        android:id="@+id/btn_about"
+                        android:layout_height="wrap_content">
+
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textAppearance="?android:attr/textAppearanceMedium"
+                            android:text="@string/txt_about"
+                            android:textColor="@color/drawer_text_color"
+                            />
+
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:orientation="vertical"
+                        android:layout_width="match_parent"
+                        android:layout_marginTop="@dimen/small_padding"
+                        android:background="@color/divider_color"
+                        android:layout_height="1dp"></LinearLayout>
+                    <Button
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/drawer_login_btn_selector"
+                        android:textColor="@color/btn_background_color"
+                        android:padding="@dimen/component_padding"
+                        android:text="@string/txt_login"
+                        android:id="@+id/login_btn" />
+
+                </LinearLayout>
+            </RelativeLayout>
+        </RelativeLayout>
+
+
+    </android.support.v4.widget.DrawerLayout>
+
+</LinearLayout>

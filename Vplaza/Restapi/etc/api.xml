@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<config>
+    <api>
+        <resources>
+            <restapi_api translate="title" module="restapi">
+                <title>My First Application</title>
+                <acl>restapi/api</acl>
+                <model>restapi/api</model>
+                <methods>                    
+						<index translate="title" module="restapi">
+							<title>My First Application</title>
+							<acl>restapi/index</acl>
+						</index>
+                </methods>
+            </restapi_api>
+        </resources>
+        <acl>
+            <resources>
+                <restapi translate="title" module="restapi">
+                    <title>My First Application</title>
+                    <sort_order>2000</sort_order>                    
+					<index translate="title" module="restapi">
+                        <title>My First Application</title>
+                    </index>
+                </restapi>
+            </resources>
+        </acl>
+    </api>
+</config>
