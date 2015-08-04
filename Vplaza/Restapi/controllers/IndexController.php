@@ -1,22 +1,27 @@
 <?php
 class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 
+    const XML_PATH_EMAIL_RECIPIENT  = 'contacts/email/recipient_email';
+    const XML_PATH_EMAIL_SENDER     = 'contacts/email/sender_email_identity';
+    const XML_PATH_EMAIL_TEMPLATE   = 'contacts/email/email_template';
+    const XML_PATH_ENABLED          = 'contacts/contacts/enabled';
+
     public function indexAction() {
 
         //Basic parameters that need to be provided for oAuth authentication
         //on Magento
         $params = array(
-            'siteUrl' => 'http://magento.loc/oauth',
-            'requestTokenUrl' => 'http://magento.loc/oauth/initiate',
-            'accessTokenUrl' => 'http://magento.loc/oauth/token',
-            'authorizeUrl' => 'http://magento.loc/admin/oAuth_authorize', //This URL is used only if we authenticate as Admin user type
-            'consumerKey' => 'h7n8qjybu78cc3n8cdd5dr7ujtl33uqh', //Consumer key registered in server administration
-            'consumerSecret' => '2smfjx37a6e4w23jlcrya6iyv5v32fxr', //Consumer secret registered in server administration
-            'callbackUrl' => 'http://magento.loc/restapi/index/callback', //Url of callback action below
+            'siteUrl' => Mage::getBaseUrl().'oauth',
+            'requestTokenUrl' => Mage::getBaseUrl().'oauth/initiate',
+            'accessTokenUrl' => Mage::getBaseUrl().'oauth/token',
+            'authorizeUrl' => Mage::getBaseUrl().'admin/oauth_authorize', //This URL is used only if we authenticate as Admin user type
+            'consumerKey' => 'e996e92b728faac307eb86b7b015087a', //7d847a959fe5d9ea2a39751af2d0f8b8 Consumer key registered in server administration
+            'consumerSecret' => '20c61e1ff1d130e4c7b8076e9873f49c', //041b68bca247bee7d733fb7c17fe8028 Consumer secret registered in server administration
+            'callbackUrl' => Mage::getBaseUrl().'restapi/index/callback', //Url of callback action below
         );
 
 
-        $oAuthClient = Mage::getModel('vplaza_restapi/oauth_client');
+        $oAuthClient = Mage::getModel('restapi/api');
         $oAuthClient->reset();
 
         $oAuthClient->init($params);
@@ -27,19 +32,19 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 
     public function callbackAction() {
 
-        $oAuthClient = Mage::getModel('vplaza_restapi/oauth_client');
+        $oAuthClient = Mage::getModel('restapi/api');
         $params = $oAuthClient->getConfigFromSession();
         $oAuthClient->init($params);
 
         $state = $oAuthClient->authenticate();
 
-        if ($state == Vplaza_Restapi_Model_OAuth_Client::OAUTH_STATE_ACCESS_TOKEN) {
+        if ($state == Vplaza_Restapi_Model_Api::OAUTH_STATE_ACCESS_TOKEN) {
             $acessToken = $oAuthClient->getAuthorizedToken();
         }
 
         $restClient = $acessToken->getHttpClient($params);
         // Set REST resource URL
-        $restClient->setUri('http://magento.loc/api/rest/products');
+        $restClient->setUri('http://syonserver.com/vipplaza/restapi/index/products');
         // In Magento it is neccesary to set json or xml headers in order to work
         $restClient->setHeaders('Accept', 'application/json');
         // Get method
@@ -958,49 +963,42 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 
         $params = array();
 		$uid = $this->getRequest()->getPost('uid');
-        $pid = 65699; //$this->getRequest()->getPost('pid');
+        $pid = $this->getRequest()->getPost('pid');
 		$pqty = $this->getRequest()->getPost('qty');
         $params['cptions']['size_clothes'] = $this->getRequest()->getPost('size');
 
-
-        $_product = Mage::getModel('catalog/product')->load($pid);
-
-
-        /*$ids=Mage::getResourceSingleton('catalog/product_type_configurable')->getChildrenIds($pid);
-
-
-        $product = Mage::getModel('catalog/product')->load($ids['65696']);
-
-        print_r($ids);
-
-        print_r($product->getProduct()->getName()); exit;
-
-        $_subproducts = Mage::getModel('catalog/product')->getCollection()->addIdFilter($ids)->addAttributeToSelect('size_clothes')->groupByAttribute('size_clothes');
-
-        print_r($_subproducts); exit;
-
         $connectionRead = Mage::getSingleton('core/resource')->getConnection('core_read');
 
-        $selectrows = "SELECT `sales_flat_quote`.* FROM `sales_flat_quote` WHERE customer_id= ".$uid." AND is_active = '1'  AND COALESCE(reserved_order_id, '') = ''";
+        $selectrows = "SELECT `sales_flat_quote`.* FROM `sales_flat_quote` WHERE customer_id= ".$uid." AND is_active = '1' AND COALESCE(reserved_order_id, '') = ''";
 
         $rowArray = $connectionRead->fetchAll($selectrows);
-
-        echo $sku = $_product->getSku();
 
         $response = array();
         $j=0;
         //if(!empty($entity_id)) {
+
+        $qtycount = 0;
+        $items = array();
         foreach ($rowArray as $row) {
             $select = $connectionRead->select()
                 ->from('sales_flat_quote_item', array('*'))
                 ->where('quote_id=?', $row['entity_id'])
-                ->where('sku=?',$sku);
+                ->where('product_id=?', $pid);
 
-            $item = $connectionRead->fetchAll($select);
+            $items = $connectionRead->fetchAll($select);
 
-            print_r($item);
-        }*/
+            if(!empty($items)) {
+                foreach($items as $item)
+                {
+                    if ($item['price'] != 0) {
+                        $qty = number_format($item['qty'],0);
+                        $qtycount += $qty;
+                    }
+                }
+            }
+        }
 
+        $_product = Mage::getModel('catalog/product')->load($pid);
 
         $qty = 0;
         $min = (float)Mage::getModel('cataloginventory/stock_item')->loadByProduct($_product)->getNotifyStockQty();
@@ -1027,20 +1025,15 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 
         $response = array();
 
-        /*if($qty < $pqty)
+        $checkqty = $qtycount + $pqty;
+
+        if($checkqty > $qty)
         {
-            $response['msg'] = 'You can not purchase more than '.$qty.' products'.
+            $response['msg'] = 'The maximum quantity allowed for purchase is '.$qty;
             $response['status'] = '0';
             echo json_encode($response);
             exit;
         }
-        if($min > $pqty)
-        {
-            $response['msg'] = 'Minimum quantity for this product '.$min.
-            $response['status'] = '0';
-            echo json_encode($response);
-            exit;
-        }*/
 
         $params['product_id'] = $pid;
         $params['qty'] = $pqty;
@@ -1072,14 +1065,7 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 
         //$childProduct = Mage::getModel('catalog/product_type_configurable')->getProductByAttributes(151, $_product);
 
-//print_r($params);
-
-        //print_r($childProduct); exit;
-
         try {
-            $_product = Mage::getModel('catalog/product')->load($pid);
-
-            //$inStock = Mage::getModel('cataloginventory/stock_item')->loadByProduct($_product)->getIsInStock();
 
             $cart = Mage::getModel('checkout/cart');
             $cart->init();
@@ -1123,35 +1109,54 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 	{
 		$uid = $this->getRequest()->getPost('uid');
 
-        //$items = Mage::getSingleton('checkout/session')->getQuote()->getAllItems();
+        $connectionRead = Mage::getSingleton('core/resource')->getConnection('core_read');
 
-        //Check product and userid available in cart table
-		$connectionRead = Mage::getSingleton('core/resource')->getConnection('core_read');
-
-        $selectrows = "SELECT `sales_flat_quote`.* FROM `sales_flat_quote` WHERE customer_id= ".$uid." AND is_active = '1'  AND COALESCE(reserved_order_id, '') = ''";
+        $selectrows = "SELECT `sales_flat_quote`.* FROM `sales_flat_quote` WHERE customer_id= ".$uid." AND is_active = '1' AND COALESCE(reserved_order_id, '') = ''";
 
         $rowArray = $connectionRead->fetchAll($selectrows);
 
-        $total = 0;
-        $i=1;
+        $response = array();
+        $j=0;
+        $count = 0;
         foreach ($rowArray as $row) {
             $select = $connectionRead->select()
                 ->from('sales_flat_quote_item', array('*'))
                 ->where('quote_id=?', $row['entity_id']);
 
-            $item = $connectionRead->fetchRow($select);
+            $response['entity_id'][] = $row['entity_id'];
+            $items[] = $connectionRead->fetchAll($select);
+        }
 
-            if(!empty($item))
+        if(!empty($items)) {
+
+            for ($n=0; $n<count($items); $n++)
             {
-                $total += $item['qty'];
+                if (empty($items[$n]))
+                    unset($items[$n]);
+
+                $myArray = $items;
+            }
+
+            $dataArray = array_values($myArray);
+
+            for($z=0;$z<count($dataArray);$z++)
+            {
+                foreach($dataArray[$z] as $item)
+                {
+                    if ($item['price'] != 0) {
+                        $qty = number_format($item['qty'],0);
+                        $count += $qty;
+                    }
+                }
             }
         }
 
-        if($total > 0) {
+
+        if($count > 0) {
             $response['msg'] = '';
             $response['status'] = 1;
-            $response['count'] = $total;
-            $response['entity_id'] = $entity_id;
+            $response['count'] = $count;
+            //$response['entity_id'] = $entity_id;
         }
         else{
             $response['msg'] = '';
@@ -1171,84 +1176,128 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 
         $uid = $this->getRequest()->getPost('uid');
         $entity_id = $this->getRequest()->getPost('entity_id');
-        
-		$connectionRead = Mage::getSingleton('core/resource')->getConnection('core_read');
 
-        $selectrows = "SELECT `sales_flat_quote`.* FROM `sales_flat_quote` WHERE customer_id= ".$uid." AND is_active = '1'  AND COALESCE(reserved_order_id, '') = ''";
+        $connectionRead = Mage::getSingleton('core/resource')->getConnection('core_read');
+
+        $selectrows = "SELECT `sales_flat_quote`.* FROM `sales_flat_quote` WHERE customer_id= ".$uid." AND is_active = '1' AND COALESCE(reserved_order_id, '') = ''";
 
         $rowArray = $connectionRead->fetchAll($selectrows);
-       
+
         $response = array();
         $j=0;
-        //if(!empty($entity_id)) {
-            foreach ($rowArray as $row) {
-                $select = $connectionRead->select()
-                    ->from('sales_flat_quote_item', array('*'))
-                    ->where('quote_id=?', $row['entity_id']);
 
-                $item = $connectionRead->fetchRow($select);
 
-                $_product = Mage::getModel('catalog/product')->load($item['product_id']);
+        $m=0;
+        foreach ($rowArray as $row) {
+            $select = $connectionRead->select()
+                ->from('sales_flat_quote_item', array('*'))
+                ->where('quote_id=?', $row['entity_id']);
 
-                $_imgSize = 250;
-                $img = Mage::helper('catalog/image')->init($_product, 'small_image')->constrainOnly(true)->keepFrame(false)->resize($_imgSize)->__toString();
+            $items[] = $connectionRead->fetchAll($select);
+        }
+        if(!empty($items)) {
 
-                if(!empty($item)) {
-                    if ($item['price'] != 0) {
-                        $response[$j]['entity_id'] = $row['entity_id'];
-                        $response[$j]['id'] = $item['product_id'];
-                        $response[$j]['name'] = $item['name'];
-                        $response[$j]['sku'] = $item['sku'];
-                        $response[$j]['ssku'] = $_product->getSsku();
-                        $response[$j]['img'] = $img; //$_product->getImageUrl();
+            for ($n=0; $n<count($items); $n++)
+            {
+                if (empty($items[$n]))
+                    unset($items[$n]);
 
-                        $qty = 0;
-                        $min = (float)Mage::getModel('cataloginventory/stock_item')->loadByProduct($_product)->getNotifyStockQty();
-
-                        if ($_product->isSaleable()) {
-                            if ($_product->getTypeId() == "configurable") {
-                                $associated_products = $_product->loadByAttribute('sku', $_product->getSku())->getTypeInstance()->getUsedProducts();
-                                foreach ($associated_products as $assoc) {
-                                    $assocProduct = Mage::getModel('catalog/product')->load($assoc->getId());
-                                    $qty += (int)Mage::getModel('cataloginventory/stock_item')->loadByProduct($assocProduct)->getQty();
-                                }
-                            } elseif ($_product->getTypeId() == 'grouped') {
-                                $qty = $min + 1;
-                            } elseif ($_product->getTypeId() == 'bundle') {
-                                $associated_products = $_product->getTypeInstance(true)->getSelectionsCollection(
-                                    $_product->getTypeInstance(true)->getOptionsIds($_product), $_product);
-                                foreach ($associated_products as $assoc) {
-                                    $qty += Mage::getModel('cataloginventory/stock_item')->loadByProduct($assoc)->getQty();
-                                }
-                            } else {
-                                $qty = (int)Mage::getModel('cataloginventory/stock_item')->loadByProduct($_product)->getQty();
-                            }
-                        }
-
-                        $response[$j]['qty'] = number_format($item['qty'], 0);
-                        $response[$j]['totalqty'] = $qty;
-                        $response[$j]['price'] = number_format($item['price'], 0, '', '.');
-                        $response[$j]['mainprice'] = number_format($_product->getPrice(),0,",",".");
-                        //$response[0]['speprice'] = number_format($_product->getSpecialPrice(),0,",",".");
-                        $response[$j]['price_incl_tax'] = number_format($item['row_total_incl_tax'], 0, '', '.');
-                        $total += $item['row_total_incl_tax'];
-                    } else {
-                        $size = explode('(', $item['name']);
-                        if(isset($size[1])) {
-                            $response[$x]['size'] = str_replace(' )', '', $size[1]);
-                        }
-                        else{
-                            $size = explode('-', $item['name']);
-                            $response[$x]['size'] = $size[1];
-                        }
-                    }
-                    $x = $j;
-                    $j++;
-                }
+                $myArray = $items;
             }
 
-            $data['data'] = $response;
-            $data['subtotal'] = number_format($total, 0, '', '.');
+            $dataArray = array_values($myArray);
+
+            for($z=0;$z<count($dataArray);$z++)
+            {
+                if(!empty($dataArray[$z]))
+                {
+                    $k=0;
+                    foreach($dataArray[$z] as $item)
+                    {
+                        $_product = Mage::getModel('catalog/product')->load($item['product_id']);
+
+                        $_imgSize = 250;
+                        $img = Mage::helper('catalog/image')->init($_product, 'small_image')->constrainOnly(true)->keepFrame(false)->resize($_imgSize)->__toString();
+
+                        if ($item['price'] != 0) {
+                            $response[$z]['entity_id'] = $item['quote_id'];
+                            $response[$z]['id'] = $item['product_id'];
+                            $response[$z]['name'] = $item['name'];
+                            $response[$z]['sku'] = $item['sku'];
+                            $response[$z]['ssku'] = $_product->getSsku();
+                            $response[$z]['img'] = $img; //$_product->getImageUrl();
+
+                            $qty = 0;
+                            $min = (float)Mage::getModel('cataloginventory/stock_item')->loadByProduct($_product)->getNotifyStockQty();
+
+                            if ($_product->isSaleable()) {
+                                if ($_product->getTypeId() == "configurable") {
+                                    $associated_products = $_product->loadByAttribute('sku', $_product->getSku())->getTypeInstance()->getUsedProducts();
+                                    foreach ($associated_products as $assoc) {
+                                        $assocProduct = Mage::getModel('catalog/product')->load($assoc->getId());
+                                        $qty += (int)Mage::getModel('cataloginventory/stock_item')->loadByProduct($assocProduct)->getQty();
+                                    }
+                                } elseif ($_product->getTypeId() == 'grouped') {
+                                    $qty = $min + 1;
+                                } elseif ($_product->getTypeId() == 'bundle') {
+                                    $associated_products = $_product->getTypeInstance(true)->getSelectionsCollection(
+                                        $_product->getTypeInstance(true)->getOptionsIds($_product), $_product);
+                                    foreach ($associated_products as $assoc) {
+                                        $qty += Mage::getModel('cataloginventory/stock_item')->loadByProduct($assoc)->getQty();
+                                    }
+                                } else {
+                                    $qty = (int)Mage::getModel('cataloginventory/stock_item')->loadByProduct($_product)->getQty();
+                                }
+                            }
+
+                            $response[$z]['qty'] = number_format($item['qty'], 0);
+                            $response[$z]['totalqty'] = $qty;
+                            $response[$z]['price'] = number_format($item['price'], 0, '', '.');
+                            $response[$z]['mainprice'] = number_format($_product->getPrice(),0,",",".");
+                            //$response[0]['speprice'] = number_format($_product->getSpecialPrice(),0,",",".");
+                            $response[$z]['price_incl_tax'] = number_format($item['row_total_incl_tax'], 0, '', '.');
+                            $submitqty = round($item['row_total_incl_tax'] / $item['price'],0);
+                            $response[$z]['submitqty'] = $submitqty;
+                            $total += $item['row_total_incl_tax'];
+                        } else {
+                            $size = explode('(', $item['name']);
+                            if(isset($size[1])) {
+                                $response[$x]['size'] = str_replace(' )', '', $size[1]);
+                            }
+                            else{
+                                $size = explode('-', $item['name']);
+                                if(isset($size[1]))
+                                {
+                                    $response[$x]['size'] = $size[1];
+                                }
+                                else
+                                {
+                                    $size = explode('\'', $item['name']);
+                                    if(isset($size[1]))
+                                    {
+                                        $response[$x]['size'] = $size[1];
+                                    }
+                                    else
+                                    {
+                                        $response[$x]['size'] = 'M';
+                                    }
+                                }
+                            }
+                        }
+                        $x = $z;
+                        $k++;
+                    }
+                }
+            }
+                //$x = $j;
+                $j++;
+        }
+
+        //print_r(array_values($response));
+
+        $data['data'] = array_values($response);
+        $data['subtotal'] = number_format($total, 0, '', '.');
+        //$data['count'] = $count;
         //}
 		echo json_encode($data);
 	}
@@ -1258,6 +1307,75 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
         $entity_id = $this->getRequest()->getPost('entity_id');
         $pid = $this->getRequest()->getPost('pid');
         $qty = $this->getRequest()->getPost('qty');
+        $uid = $this->getRequest()->getPost('uid');
+
+        /*$connectionRead = Mage::getSingleton('core/resource')->getConnection('core_read');
+
+        $selectrows = "SELECT `sales_flat_quote`.* FROM `sales_flat_quote` WHERE customer_id= ".$uid." AND is_active = '1' AND COALESCE(reserved_order_id, '') = ''";
+
+        $rowArray = $connectionRead->fetchAll($selectrows);
+
+        $response = array();
+        $j=0;
+        //if(!empty($entity_id)) {
+
+        $qtycount = 0;
+        $items = array();
+        foreach ($rowArray as $row) {
+            $select = $connectionRead->select()
+                ->from('sales_flat_quote_item', array('*'))
+                ->where('quote_id=?', $row['entity_id'])
+                ->where('product_id=?', $pid);
+
+            $items = $connectionRead->fetchAll($select);
+
+            if(!empty($items)) {
+                foreach($items as $item)
+                {
+                    if ($item['price'] != 0) {
+                        $qty = number_format($item['qty'],0);
+                        $qtycount += $qty;
+                    }
+                }
+            }
+        }
+
+        $_product = Mage::getModel('catalog/product')->load($pid);
+
+        $pqty = 0;
+        $min = (float)Mage::getModel('cataloginventory/stock_item')->loadByProduct($_product)->getNotifyStockQty();
+
+        if ($_product->isSaleable()) {
+            if ($_product->getTypeId() == "configurable") {
+                $associated_products = $_product->loadByAttribute('sku', $_product->getSku())->getTypeInstance()->getUsedProducts();
+                foreach ($associated_products as $assoc){
+                    $assocProduct = Mage::getModel('catalog/product')->load($assoc->getId());
+                    $pqty += (int)Mage::getModel('cataloginventory/stock_item')->loadByProduct($assocProduct)->getQty();
+                }
+            } elseif ($_product->getTypeId() == 'grouped') {
+                $pqty = $min + 1;
+            } elseif ($_product->getTypeId() == 'bundle') {
+                $associated_products = $_product->getTypeInstance(true)->getSelectionsCollection(
+                    $_product->getTypeInstance(true)->getOptionsIds($_product), $_product);
+                foreach($associated_products as $assoc) {
+                    $pqty += Mage::getModel('cataloginventory/stock_item')->loadByProduct($assoc)->getQty();
+                }
+            } else {
+                $pqty = (int)Mage::getModel('cataloginventory/stock_item')->loadByProduct($_product)->getQty();
+            }
+        }
+
+        $response = array();
+
+        $checkqty = $qtycount + $qty;
+
+        if($checkqty > $pqty)
+        {
+            $response['msg'] = 'The maximum quantity allowed for purchase is '.$pqty;
+            $response['status'] = '0';
+            echo json_encode($response);
+            exit;
+        }*/
 
         $connectionRead = Mage::getSingleton('core/resource')->getConnection('core_read');
 
@@ -1869,5 +1987,87 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 
         echo json_encode($data);
 
+    }
+
+    public function contactInfoAction()
+    {
+        $contactinfo = '<p>Jl. KH Mohamad Mansyur No. 14</p>
+                    <p>Kel. Duri Pulo Kec. Gambir</p>
+                    <p>Jakarta Pusat 10140</p>';
+
+        $customersupport = '<p><a href="tel:+62216320880">+ 62 (21)632-0880</a></p>
+                    <p>Senin - Jumat : 09.00 - 18:00 WIB</p>
+                    <p>Sabtu : 09.00 - 12.00 WIB</p>';
+
+        $social = array(
+            'facebook' => array(
+                'name' => 'vipplaza',
+                'url' => 'http://www.facebook.com/vipplaza',
+            ),
+            'twitter' => array(
+                'name' => '@vipplazaid',
+                'url' => 'http://www.twitter.com/vipplazaid',
+            ),
+            'instagram' => array(
+                'name' => '@vipplazaid',
+                'url' => 'http://www.instagram.com/vipplazaid',
+            )
+        );
+
+        $email_address = array(
+            'email' => array('brands@vipplaza.co.id','marketing@vipplaza.co.id','hrd@vipplaza.co.id','cs@vipplaza.co.id')
+        );
+
+        $response[0]['contactinfo'] = $contactinfo;
+        $response[0]['customersupport'] = $customersupport;
+        $response[0]['social'] = $social;
+        $response[0]['email_address'] = $email_address;
+
+        echo json_encode($response);
+    }
+
+    public function contactMailAction()
+    {
+        $post = $this->getRequest()->getPost();
+
+        $translate = Mage::getSingleton('core/translate');
+        /* @var $translate Mage_Core_Model_Translate */
+        $translate->setTranslateInline(false);
+
+        $response = array();
+
+        try {
+            $postObject = new Varien_Object();
+            $postObject->setData($post);
+
+            $mailTemplate = Mage::getModel('core/email_template');
+            /* @var $mailTemplate Mage_Core_Model_Email_Template */
+            $mailTemplate->setDesignConfig(array('area' => 'frontend'))
+                ->setReplyTo($post['email'])
+                ->sendTransactional(
+                    Mage::getStoreConfig(self::XML_PATH_EMAIL_TEMPLATE),
+                    Mage::getStoreConfig(self::XML_PATH_EMAIL_SENDER),
+                    Mage::getStoreConfig(self::XML_PATH_EMAIL_RECIPIENT),
+                    null,
+                    array('data' => $postObject)
+                );
+            if (!$mailTemplate->getSentSuccess()) {
+                throw new Exception();
+            }
+
+            $translate->setTranslateInline(true);
+
+            $response['success'] = 1;
+            $response['msg'] = 'Your inquiry was submitted and will be responded to as soon as possible. Thank you for contacting us.';
+
+        } catch (Exception $e) {
+            $translate->setTranslateInline(true);
+
+            $response['success'] = 0;
+            $response['msg'] = 'Unable to submit your request. Please, try again later';
+
+        }
+
+        echo json_encode($response);
     }
 }

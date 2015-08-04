@@ -135,6 +135,11 @@
             android:screenOrientation="portrait"
             android:windowSoftInputMode="stateAlwaysHidden"></activity>
 
+        <activity
+            android:name="in.vipplaza.ContactUs"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="stateAlwaysHidden"></activity>
+
 
 
         <meta-data

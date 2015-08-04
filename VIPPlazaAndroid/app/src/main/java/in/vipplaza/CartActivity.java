@@ -255,6 +255,17 @@ public class CartActivity extends AppCompatActivity {
                         info.ssku=obj.getString("ssku");
                         info.img=obj.getString("img");
                         info.qty=obj.getString("qty");
+                        info.submitqty=obj.getString("submitqty");
+
+                        if(Integer.parseInt(obj.getString("submitqty"))==1)
+                        {
+                            info.cart_pos=0;
+                        }
+                        else
+                        {
+                            info.cart_pos=1;
+                        }
+
                         info.price=obj.getString("price");
                         info.totalqty=obj.getString("totalqty");
                         info.entity_id=obj.getString("entity_id");

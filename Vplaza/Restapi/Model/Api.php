@@ -1,5 +1,5 @@
 <?php
-class Vplaza_Restapi_Model_Api extends Mage_Api_Model_Resource_Abstract
+class Vplaza_Restapi_Model_Api extends Mage_Core_Model_Abstract
 {        
 	private $_callbackUrl;
     private $_siteUrl;

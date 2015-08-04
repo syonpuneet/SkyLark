@@ -18,9 +18,9 @@ public class InfoCart {
     public String size;
     public String entity_id;
     public String mainprice;
+    public String submitqty;
 
-
-
+    public int cart_pos=0;
 
 
     public InfoCart()
@@ -44,6 +44,7 @@ public class InfoCart {
         this.size=obj.size;
         this.mainprice=obj.mainprice;
         this.entity_id=obj.entity_id;
+        this.submitqty=obj.submitqty;
 
 
     }

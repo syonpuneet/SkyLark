@@ -119,7 +119,7 @@ public class Constant {
 
 	public static String terms_url="http://syonserver.com/hdb/terms-and-condition";
 
-	public static final String GOOGLE_PROJECT_ID = "1085333525074";
+	public static final String GOOGLE_PROJECT_ID = "";
 	public static final String MESSAGE_KEY = "message";
 	public static final String REG_ID = "regId";
 	public static final String APP_VERSION = "appVersion";

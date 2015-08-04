@@ -145,7 +145,7 @@ public class CartAdapter extends ArrayAdapter<InfoCart> {
 
             holder.size.setText( info.get(position).size);
         }
-       holder.qty.setText(info.get(position).qty);
+       holder.qty.setText(info.get(position).submitqty);
 
 
         ImageLoader.getInstance().displayImage(info.get(position).img,
@@ -161,7 +161,7 @@ public class CartAdapter extends ArrayAdapter<InfoCart> {
 
                 AlertDialog.Builder builder = new AlertDialog.Builder(activity);
                 builder.setTitle(R.string.txt_number);
-                builder.setSingleChoiceItems(items, 0,
+                builder.setSingleChoiceItems(items, info.get(position).cart_pos,
                         new DialogInterface.OnClickListener() {
 
                             @Override

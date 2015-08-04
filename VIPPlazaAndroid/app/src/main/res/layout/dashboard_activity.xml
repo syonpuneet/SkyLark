@@ -89,7 +89,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:textAppearance="?android:attr/textAppearanceMedium"
+                            android:textAppearance="?android:attr/textAppearanceSmall"
                             android:text="@string/txt_faq"
                             android:textColor="@color/drawer_text_color"
 
@@ -115,7 +115,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:textAppearance="?android:attr/textAppearanceMedium"
+                            android:textAppearance="?android:attr/textAppearanceSmall"
                             android:text="@string/txt_kebijakan"
                             android:textColor="@color/drawer_text_color"
                             />
@@ -143,8 +143,35 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:textAppearance="?android:attr/textAppearanceMedium"
+                            android:textAppearance="?android:attr/textAppearanceSmall"
                             android:text="@string/txt_about"
+                            android:textColor="@color/drawer_text_color"
+                            />
+
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:orientation="vertical"
+                        android:layout_width="match_parent"
+                        android:layout_marginTop="@dimen/small_padding"
+                        android:background="@color/divider_color"
+                        android:layout_height="1dp"></LinearLayout>
+
+
+                    <LinearLayout
+                        android:orientation="vertical"
+                        android:layout_width="match_parent"
+                        android:padding="@dimen/component_padding"
+                        android:id="@+id/btn_contact_us"
+                        android:layout_height="wrap_content">
+
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textAppearance="?android:attr/textAppearanceSmall"
+                            android:text="@string/activity_contact_us"
                             android:textColor="@color/drawer_text_color"
                             />
 

@@ -75,7 +75,7 @@ public class DashBoardActivity extends AppCompatActivity implements View.OnClick
     private MenuItem mCartItem;
     private TextView mCartCounter;
 
-    LinearLayout btn_faq,btn_privacy,btn_about;
+    LinearLayout btn_faq,btn_privacy,btn_about,btn_contact_us;
 
     @SuppressLint("NewApi")
     @Override
@@ -118,12 +118,22 @@ public class DashBoardActivity extends AppCompatActivity implements View.OnClick
         btn_privacy=(LinearLayout)findViewById(R.id.btn_privacy);
         btn_faq=(LinearLayout)findViewById(R.id.btn_faq);
         btn_about=(LinearLayout)findViewById(R.id.btn_about);
+        btn_contact_us=(LinearLayout)findViewById(R.id.btn_contact_us);
 
 
 
         btn_faq.setOnClickListener(this);
         btn_privacy.setOnClickListener(this);
         btn_about.setOnClickListener(this);
+        btn_contact_us.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+
+                Constant.sendIntent(mContext,ContactUs.class);
+            }
+        });
+
 
         navDrawerItems = new ArrayList<NavdrwableIems>();
         Bundle bundle = getIntent().getExtras();

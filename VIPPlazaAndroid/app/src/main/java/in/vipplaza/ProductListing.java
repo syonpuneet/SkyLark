@@ -622,10 +622,7 @@ public class ProductListing extends AppCompatActivity implements View.OnClickLis
 
             long elapsedSeconds = mills / secondsInMilli;
 
-            System.out.printf(
-                    "%d days, %d hours, %d minutes, %d seconds%n",
-                    elapsedDays,
-                    elapsedHours, elapsedMinutes, elapsedSeconds);
+
 
             String diff = elapsedHours + " : " + elapsedMinutes + " : " + elapsedSeconds;
 

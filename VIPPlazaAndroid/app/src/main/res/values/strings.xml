@@ -7,7 +7,7 @@
     <string name="action_cart">Cart</string>
 
 
-    <string name="facebook_app_id">828734757221781</string>
+    <string name="facebook_app_id"></string>
 
 
     <string-array name="nav_drawer_items">
@@ -54,6 +54,7 @@
     <string name="activity_payment_methods">Metode Pembayaran</string>
     <string name="activity_shopping_bag"> Tas Belanja</string>
     <string name="activity_my_account"> Akun saya</string>
+    <string name="activity_contact_us"> Hubungi Kami</string>
 
 
 
@@ -69,7 +70,7 @@
     <string name="error_new_password"> Password saat ini invalid  </string>
     <string name="error_confirm_password">Pastikan password anda sesuai.  </string>
     <string name="txt_select_size">Please select size</string>
-
+    <string name="error_pesan">PESAN cannot be blank</string>
     <string name="txt_max_allowed">The maximum quantity allowed for purchase is 2.</string>
     <string name="txt_not_available">The requested quantity is not available.</string>
 
@@ -204,7 +205,28 @@
     <string name="txt_date">Tanggal</string>
     <string name="txt_buyer_name">Nama Pemesan</string>
     <string name="txt_total_pensan">Total Pesanan</string>
-    <string name="txt_status">Status Pesanan</string>c
+    <string name="txt_status">Status Pesanan</string>
+
+
+
+    <!--contact us-->
+    <string name="txt_office_address">Alamat Kantor</string>
+    <string name="txt_telephone_customer_support">Telepon (Bantuan Pelanggan)</string>
+    <string name="txt_social_media"> SOSIAL MEDIA</string>
+    <string name="txt_alamat_email"> Alamat email</string>
+    <string name="txt_nomor_telephone"> Nomor Telepon</string>
+    <string name="txt_kirim"> KIRMIM</string>
+    <string name="txt_facebook"> Facebook</string>
+    <string name="txt_twitter"> Twitter</string>
+    <string name="txt_instagram"> Instagram</string>
+    <string name="txt_supplier"> Supplier</string>
+    <string name="txt_kerjasama"> Kerjasama</string>
+    <string name="txt_karir_layanan"> Karir Layanan</string>
+    <string name="txt_pelanggan"> Pelanggan</string>
+
+
+
+
 
 
 
