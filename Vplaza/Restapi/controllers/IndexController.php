@@ -6,11 +6,17 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
     const XML_PATH_EMAIL_TEMPLATE   = 'contacts/email/email_template';
     const XML_PATH_ENABLED          = 'contacts/contacts/enabled';
 
+    public function tokenval()
+    {
+        return md5('9887402381');
+    }
+
     public function indexAction() {
 
         //Basic parameters that need to be provided for oAuth authentication
         //on Magento
-        $params = array(
+
+        /*$params = array(
             'siteUrl' => Mage::getBaseUrl().'oauth',
             'requestTokenUrl' => Mage::getBaseUrl().'oauth/initiate',
             'accessTokenUrl' => Mage::getBaseUrl().'oauth/token',
@@ -27,7 +33,7 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
         $oAuthClient->init($params);
         $oAuthClient->authenticate();
 
-        return;
+        return;*/
     }
 
     public function callbackAction() {
@@ -71,7 +77,17 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 		$email = $this->getRequest()->getPost('email');
 		$password = $this->getRequest()->getPost('password');
 		$gender = $this->getRequest()->getPost('gender');
-		
+
+        $token = $this->getRequest()->getPost('token');
+
+        if($this->tokenval() != $token)
+        {
+            $response['msg'] = 'You are not authorized to access this';
+            $response['status'] = '1';
+            echo json_encode($response);
+            exit;
+        }
+
 		//Save Address
 		/*$address = Mage::getModel("customer/address");
 		$address->setCustomerId($customer->getId())
@@ -148,6 +164,16 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 		
 		$email = $this->getRequest()->getPost('email');
 		$password = $this->getRequest()->getPost('password');
+
+        $token = $this->getRequest()->getPost('token');
+
+        if($this->tokenval() != $token)
+        {
+            $response['msg'] = 'You are not authorized to access this';
+            $response['status'] = '1';
+            echo json_encode($response);
+            exit;
+        }
 		
 		$response = array();
 		
@@ -210,6 +236,16 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 		$random = substr($fname,0,4).rand(10001,999999);
 		$password = $random;
 		$gender = $this->getRequest()->getPost('gender');
+        $token = $this->getRequest()->getPost('token');
+
+        if($this->tokenval() != $token)
+        {
+            $response['msg'] = 'You are not authorized to access this';
+            $response['status'] = '1';
+            echo json_encode($response);
+            exit;
+        }
+
 		
 		//Save Customer Detail
 		$customer = Mage::getModel("customer/customer");
@@ -294,6 +330,15 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 		$response = array();
 		//By ID
 		$id = $this->getRequest()->getPost('uid');
+        $token = $this->getRequest()->getPost('token');
+
+        if($this->tokenval() != $token)
+        {
+            $response['msg'] = 'You are not authorized to access this';
+            $response['status'] = '1';
+            echo json_encode($response);
+            exit;
+        }
 		$customerData = Mage::getModel('customer/customer')->load($id)->getData();
     	//Mage::log($customerData);
 		if(!empty($customerData))
@@ -317,6 +362,15 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 	{
 		$response = array();
 		$uid = $this->getRequest()->getPost('uid');
+        $token = $this->getRequest()->getPost('token');
+
+        if($this->tokenval() != $token)
+        {
+            $response['msg'] = 'You are not authorized to access this';
+            $response['status'] = '1';
+            echo json_encode($response);
+            exit;
+        }
 		
 		require_once './app/Mage.php';
 		Mage::app('default');
@@ -432,6 +486,17 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 		$email = $this->getRequest()->getPost('email');
 		$oldpassword = $this->getRequest()->getPost('oldpass');
 		$newpassword = $this->getRequest()->getPost('newpass');
+
+        $token = $this->getRequest()->getPost('token');
+
+        if($this->tokenval() != $token)
+        {
+            $response['msg'] = 'You are not authorized to access this';
+            $response['status'] = '1';
+            echo json_encode($response);
+            exit;
+        }
+
 		$store = Mage::app()->getStore()->getId();
 		
 		$websiteId = Mage::getModel('core/store')->load($store)->getWebsiteId();
@@ -473,12 +538,13 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 		$Menu = $this->getLayout()->createBlock('cms/block')->setBlockId('homepage_menu')->toHtml();
 		$MENU = json_decode($Menu);
 		$eventCategoryIDS = array();
-		foreach($MENU[1] as $ev){
+        foreach($MENU[1] as $ev){
 			$eventCategoryIDS[]=$ev->event_category;
 		}
 		$idEvent = explode(',',implode(',',$eventCategoryIDS));
 		$i=0;
-		foreach($MENU[0] as $index=>$menu) {
+        //$response['token'] = $this->tokenval();
+        foreach($MENU[0] as $index=>$menu) {
 			
 			$response[$i]['id'] = $menu->ec_id;
 			$response[$i]['name'] = $menu->ec_name;
@@ -507,8 +573,13 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 			}*/
 			$i++;
 		}
-		
-		echo json_encode($response);
+
+        //Mage::getStoreConfig(self::TOKEN);
+
+        $data['token'] = $this->tokenval();
+        $data['response'] = $response;
+
+		echo json_encode($data);
 	}
 	
 	/**
@@ -520,6 +591,16 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 		Mage::app('default');
 		
 		$response = array();
+
+        $token = $this->getRequest()->getPost('token');
+
+        if($this->tokenval() != $token)
+        {
+            $response['msg'] = 'You are not authorized to access this';
+            $response['status'] = '1';
+            echo json_encode($response);
+            exit;
+        }
 		
 		$now            = date("Y-m-d H:i:s", Mage::getModel('core/date')->timestamp(time()));
         $dateEvent      = explode(" ", $now);
@@ -631,8 +712,42 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 		
 		$response = array();
 		$catid = $this->getRequest()->getPost('cat_id');
-		$order_price = $this->getRequest()->getPost('order_price');
-		$order_name = $this->getRequest()->getPost('order_name');
+		$price_order = $this->getRequest()->getPost('order_price');
+		$name_order = $this->getRequest()->getPost('order_name');
+        $click_val = $this->getRequest()->getPost('click_val');
+
+        $token = $this->getRequest()->getPost('token');
+
+        if($this->tokenval() != $token)
+        {
+            $response['msg'] = 'You are not authorized to access this';
+            $response['status'] = '1';
+            echo json_encode($response);
+            exit;
+        }
+
+        if($click_val == 'name')
+        {
+            $nextval = 'price';
+            $order_name = $name_order;
+            $order_price = $price_order;
+        }
+
+        if($click_val == 'price')
+        {
+            $nextval = 'name';
+            $order_name = $price_order;
+            $order_price = $name_order;
+
+        }
+
+        if($click_val == '')
+        {
+            $click_val = 'name';
+            $nextval = 'price';
+            $order_name = 'ASC';
+            $order_price = 'ASC';
+        }
 
         $select = $connection->select()
             ->from('event_list', array('*'))
@@ -644,8 +759,8 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 		$products = Mage::getResourceModel('catalog/product_collection')
         	->setStoreId(Mage::app()->getStore()->getId())
 			->addCategoryFilter($category)
-			->addAttributeToSort('name', $order_name)
-			->addAttributeToSort('price', $order_price);
+			->addAttributeToSort($click_val, $order_name)
+			->addAttributeToSort($nextval, $order_price);
 
 		$productmodel = Mage::getModel('catalog/product');
 		
@@ -729,7 +844,17 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 	{
 		$response = array();
 		$pid = $this->getRequest()->getPost('pid');
-		
+
+        $token = $this->getRequest()->getPost('token');
+
+        if($this->tokenval() != $token)
+        {
+            $response['msg'] = 'You are not authorized to access this';
+            $response['status'] = '1';
+            echo json_encode($response);
+            exit;
+        }
+
 		$_product = Mage::getModel('catalog/product')->load($pid);
 		
 		$response[0]['id'] = $_product->getId();
@@ -881,7 +1006,16 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 	public function homesliderAction()
 	{
 		$response = array();
-		
+        $token = $this->getRequest()->getPost('token');
+
+        if($this->tokenval() != $token)
+        {
+            $response['msg'] = 'You are not authorized to access this';
+            $response['status'] = '1';
+            echo json_encode($response);
+            exit;
+        }
+
 		$response[0][0]	= 'http://www.vipplaza.co.id/media/banner/sliding-ARIES-GOLD-mobile.jpg';
 		$response[0][1]	= 'http://www.vipplaza.co.id/media/banner/sliding-FRAGANCE-mobile.jpg';
 		$response[0][2]	= 'http://www.vipplaza.co.id/media/banner/POLICE-SLIDING-MOBILE.jpg';
@@ -900,6 +1034,16 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 		Mage::app('default');
 
         $response = array();
+
+        $token = $this->getRequest()->getPost('token');
+
+        if($this->tokenval() != $token)
+        {
+            $response['msg'] = 'You are not authorized to access this';
+            $response['status'] = '1';
+            echo json_encode($response);
+            exit;
+        }
 
 		$connection = Mage::getSingleton('core/resource')->getConnection('core_read');
 
@@ -966,6 +1110,16 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
         $pid = $this->getRequest()->getPost('pid');
 		$pqty = $this->getRequest()->getPost('qty');
         $params['cptions']['size_clothes'] = $this->getRequest()->getPost('size');
+
+        $token = $this->getRequest()->getPost('token');
+
+        if($this->tokenval() != $token)
+        {
+            $response['msg'] = 'You are not authorized to access this';
+            $response['status'] = '1';
+            echo json_encode($response);
+            exit;
+        }
 
         $connectionRead = Mage::getSingleton('core/resource')->getConnection('core_read');
 
@@ -1108,6 +1262,15 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 	public function cartCountAction()
 	{
 		$uid = $this->getRequest()->getPost('uid');
+        $token = $this->getRequest()->getPost('token');
+
+        if($this->tokenval() != $token)
+        {
+            $response['msg'] = 'You are not authorized to access this';
+            $response['status'] = '1';
+            echo json_encode($response);
+            exit;
+        }
 
         $connectionRead = Mage::getSingleton('core/resource')->getConnection('core_read');
 
@@ -1176,6 +1339,15 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 
         $uid = $this->getRequest()->getPost('uid');
         $entity_id = $this->getRequest()->getPost('entity_id');
+        $token = $this->getRequest()->getPost('token');
+
+        if($this->tokenval() != $token)
+        {
+            $response['msg'] = 'You are not authorized to access this';
+            $response['status'] = '1';
+            echo json_encode($response);
+            exit;
+        }
 
         $connectionRead = Mage::getSingleton('core/resource')->getConnection('core_read');
 
@@ -1308,8 +1480,19 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
         $pid = $this->getRequest()->getPost('pid');
         $qty = $this->getRequest()->getPost('qty');
         $uid = $this->getRequest()->getPost('uid');
+        $click_val = $this->getRequest()->getPost('click_val');
 
-        /*$connectionRead = Mage::getSingleton('core/resource')->getConnection('core_read');
+        $token = $this->getRequest()->getPost('token');
+
+        if($this->tokenval() != $token)
+        {
+            $response['msg'] = 'You are not authorized to access this';
+            $response['status'] = '1';
+            echo json_encode($response);
+            exit;
+        }
+
+        $connectionRead = Mage::getSingleton('core/resource')->getConnection('core_read');
 
         $selectrows = "SELECT `sales_flat_quote`.* FROM `sales_flat_quote` WHERE customer_id= ".$uid." AND is_active = '1' AND COALESCE(reserved_order_id, '') = ''";
 
@@ -1317,28 +1500,41 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 
         $response = array();
         $j=0;
-        //if(!empty($entity_id)) {
 
         $qtycount = 0;
         $items = array();
-        foreach ($rowArray as $row) {
+        //foreach ($rowArray as $row) {
             $select = $connectionRead->select()
                 ->from('sales_flat_quote_item', array('*'))
-                ->where('quote_id=?', $row['entity_id'])
+                ->where('quote_id=?', $entity_id)
                 ->where('product_id=?', $pid);
 
-            $items = $connectionRead->fetchAll($select);
+            $items = $connectionRead->fetchRow($select);
+            $qtycount = number_format($items['qty'],0);
+        //}
+        /*if(!empty($items)) {
 
-            if(!empty($items)) {
-                foreach($items as $item)
+            for ($n=0; $n<count($items); $n++)
+            {
+                if (empty($items[$n]))
+                    unset($items[$n]);
+
+                $myArray = $items;
+            }
+
+            $dataArray = array_values($myArray);
+
+            for($z=0;$z<count($dataArray);$z++)
+            {
+                foreach($dataArray[$z] as $item)
                 {
                     if ($item['price'] != 0) {
-                        $qty = number_format($item['qty'],0);
-                        $qtycount += $qty;
+                        $qty1 = number_format($item['qty'],0);
+                        $qtycount += $qty1;
                     }
                 }
             }
-        }
+        }*/
 
         $_product = Mage::getModel('catalog/product')->load($pid);
 
@@ -1367,7 +1563,14 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 
         $response = array();
 
-        $checkqty = $qtycount + $qty;
+        if($click_val == 'plus')
+        {
+           $checkqty = $qtycount + $qty;
+        }
+        else
+        {
+            $checkqty = $qtycount - $qty;
+        }
 
         if($checkqty > $pqty)
         {
@@ -1375,7 +1578,7 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
             $response['status'] = '0';
             echo json_encode($response);
             exit;
-        }*/
+        }
 
         $connectionRead = Mage::getSingleton('core/resource')->getConnection('core_read');
 
@@ -1388,11 +1591,14 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 
         $price = $rowArray['price'];
 
-        $total = $price * $qty;
+        $total = $price * $checkqty;
 
         $connection = Mage::getSingleton('core/resource')->getConnection('core_write');
 
-        $connection->query("update sales_flat_quote_item set qty = '".$qty."', row_total = '".$total."', base_row_total = '".$total."',price_incl_tax = '".$total."',base_price_incl_tax = '".$total."',row_total_incl_tax = '".$total."',base_row_total_incl_tax = '".$total."'  WHERE quote_id = ".$entity_id." AND product_id =".$pid);
+        $connection->query("update sales_flat_quote_item set qty = '".$checkqty."', row_total = '".$total."', base_row_total = '".$total."',price_incl_tax = '".$total."',base_price_incl_tax = '".$total."',row_total_incl_tax = '".$total."',base_row_total_incl_tax = '".$total."'  WHERE quote_id = ".$entity_id." AND product_id =".$pid);
+
+        $connectionwrite = Mage::getSingleton('core/resource')->getConnection('core_write');
+        $connectionwrite->query("update sales_flat_quote set items_count = '".$checkqty."', grand_total = '".$total."', base_grand_total = '".$total."', subtotal = '".$total."', base_subtotal = '".$total."' WHERE entity_id = ".$entity_id);
 
         $response['msg'] = 'Updated';
         $response['status'] = 1;
@@ -1404,6 +1610,15 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 	{
         $id = $this->getRequest()->getPost('pid'); // replace product id with your id
         $entity_id = $this->getRequest()->getPost('entity_id');
+        $token = $this->getRequest()->getPost('token');
+
+        if($this->tokenval() != $token)
+        {
+            $response['msg'] = 'You are not authorized to access this';
+            $response['status'] = '1';
+            echo json_encode($response);
+            exit;
+        }
 
         $connection = Mage::getSingleton('core/resource')->getConnection('core_write');
 
@@ -1420,6 +1635,15 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
     public function checkAddressAction()
     {
         $uid = $this->getRequest()->getPost('uid');
+        $token = $this->getRequest()->getPost('token');
+
+        if($this->tokenval() != $token)
+        {
+            $response['msg'] = 'You are not authorized to access this';
+            $response['status'] = '1';
+            echo json_encode($response);
+            exit;
+        }
 
         $response = array();
 
@@ -1521,6 +1745,17 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
     public function addAddressAction()
     {
         $response = array();
+
+        $token = $this->getRequest()->getPost('token');
+
+        if($this->tokenval() != $token)
+        {
+            $response['msg'] = 'You are not authorized to access this';
+            $response['status'] = '1';
+            echo json_encode($response);
+            exit;
+        }
+
         $websiteId = Mage::app()->getWebsite()->getId();
         $store = Mage::app()->getStore();
 
@@ -1573,6 +1808,16 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 
         $response = array();
 
+        $token = $this->getRequest()->getPost('token');
+
+        if($this->tokenval() != $token)
+        {
+            $response['msg'] = 'You are not authorized to access this';
+            $response['status'] = '1';
+            echo json_encode($response);
+            exit;
+        }
+
         $connectionWrites = Mage::getSingleton('core/resource')->getConnection('core_write');
 
         if($address_id == '') {
@@ -1609,7 +1854,17 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
         //$cmsArray = Mage::getModel('cms/page')->getCollection()->toOptionArray();
 
         $id = $this->getRequest()->getPost('id');
+        $response = array();
 
+        $token = $this->getRequest()->getPost('token');
+
+        if($this->tokenval() != $token)
+        {
+            $response['msg'] = 'You are not authorized to access this';
+            $response['status'] = '1';
+            echo json_encode($response);
+            exit;
+        }
         $connection = Mage::getSingleton('core/resource')->getConnection('core_read');
 
         $select = $connection->select()
@@ -1618,35 +1873,8 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 
         $rowArray = $connection->fetchRow($select);
 
-        $response = array();
         $response['name'] = $rowArray['content_heading'];
         $response['html'] = $rowArray['content'];
-
-        /*$select = $connection->select()
-            ->from('cms_page', array('content'))
-            ->where('page_id=?', 9);
-
-        $rowArrays = $connection->fetchRow($select);
-
-        $response[1]['name'] = 'Syarat & Ketentuan';
-        $response[1]['url'] = $rowArrays['content'];
-
-        $response[2]['name'] = 'Cara Pemesanan';
-        $response[2]['url'] = $rowArrays['content'];
-
-        $response[3]['name'] = 'Panduan Ukuran';
-        $response[3]['url'] = $rowArrays['content'];
-
-        $response[4]['name'] = 'Pengembalian';
-        $response[4]['url'] = $rowArrays['content'];
-
-        $response[5]['name'] = 'Kebijakan';
-        $response[5]['url'] = Mage::getBaseUrl().'privacy';
-
-        $response[6]['name'] = 'Tentang Kami';
-        $response[6]['url'] = Mage::getBaseUrl().'about';*/
-
-        //$data['data'] = $response;
 
         echo json_encode($response);
     }
@@ -1656,109 +1884,64 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 
         $response = array();
 
-        $response[0]['country_code'] = 'BD';
-        $response[0]['country_name'] = 'Bali';
+        $token = $this->getRequest()->getPost('token');
 
-        $response[1]['country_code'] = 'BB';
-        $response[1]['country_name'] = 'Bangka Belitung';
+        if($this->tokenval() != $token)
+        {
+            $response['msg'] = 'You are not authorized to access this';
+            $response['status'] = '1';
+            echo json_encode($response);
+            exit;
+        }
 
-        $response[2]['country_code'] = 'BT';
-        $response[2]['country_name'] = 'Banten';
+        $countryId = Mage::helper('core')->getDefaultCountry();
 
-        $response[3]['country_code'] = 'BE';
-        $response[3]['country_name'] = 'Bengkulu';
+        $select = $this->getLayout()->createBlock('core/html_select')
+            ->setName('shipping[country_id]')
+            ->setId('shipping:country_id')
+            ->setTitle(Mage::helper('checkout')->__('Country'))
+            ->setClass('validate-select')
+            ->setValue($countryId)
+            ->setOptions($this->getCountryOptions());
 
-        $response[4]['country_code'] = 'DK';
-        $response[4]['country_name'] = 'Di Yogyakarta';
+        $response = $select->getOptions();
 
-        $response[5]['country_code'] = 'DJ';
-        $response[5]['country_name'] = 'DKI Jakarta';
-
-        $response[6]['country_code'] = 'GT';
-        $response[6]['country_name'] = 'Gorontalo';
-
-        $response[7]['country_code'] = 'JM';
-        $response[7]['country_name'] = 'Jambi';
-
-        $response[8]['country_code'] = 'JE';
-        $response[8]['country_name'] = 'Jawa Barat';
-
-        $response[9]['country_code'] = 'JP';
-        $response[9]['country_name'] = 'Jawa Tengah';
-
-        $response[10]['country_code'] = 'JO';
-        $response[10]['country_name'] = 'Jawa Timur';
-
-        $response[11]['country_code'] = 'KE';
-        $response[11]['country_name'] = 'Kalimantan Barat';
-
-        $response[12]['country_code'] = 'KI';
-        $response[12]['country_name'] = 'Kalimantan Selatan';
-
-        $response[13]['country_code'] = 'KM';
-        $response[13]['country_name'] = 'Kalimantan Tengah';
-
-        $response[14]['country_code'] = 'KR';
-        $response[14]['country_name'] = 'Kalimantan Timur';
-
-        $response[15]['country_code'] = 'KZ';
-        $response[15]['country_name'] = 'Kepulauan Riau';
-
-        $response[16]['country_code'] = 'LA';
-        $response[16]['country_name'] = 'Lampung';
-
-        $response[17]['country_code'] = 'MK';
-        $response[17]['country_name'] = 'Maluku';
-
-        $response[18]['country_code'] = 'MU';
-        $response[18]['country_name'] = 'Maluku Utara';
-
-        $response[19]['country_code'] = 'NA';
-        $response[19]['country_name'] = 'Nanggroe Aceh Darussalam (Nad)';
-
-        $response[20]['country_code'] = 'NC';
-        $response[20]['country_name'] = 'Nusa Tenggara Barat (Ntb)';
-
-        $response[21]['country_code'] = 'NU';
-        $response[21]['country_name'] = 'Nusa Tenggara Timur (Ntt)';
-
-        $response[22]['country_code'] = 'PA';
-        $response[22]['country_name'] = 'Papua';
-
-        $response[23]['country_code'] = 'PT';
-        $response[23]['country_name'] = 'Papua Barat';
-
-        $response[24]['country_code'] = 'RE';
-        $response[24]['country_name'] = 'Riau';
-
-        $response[25]['country_code'] = 'SB';
-        $response[25]['country_name'] = 'Sulawesi Barat';
-
-        $response[26]['country_code'] = 'SG';
-        $response[26]['country_name'] = 'Sulawesi Selatan';
-
-        $response[27]['country_code'] = 'SE';
-        $response[27]['country_name'] = 'Sulawesi Tengah';
-
-        $response[28]['country_code'] = 'ST';
-        $response[28]['country_name'] = 'Sulawesi Tenggara';
-
-        $response[29]['country_code'] = 'SO';
-        $response[29]['country_name'] = 'Sulawesi Utara';
-
-        $response[30]['country_code'] = 'SR';
-        $response[30]['country_name'] = 'Sumatera Barat';
-
-        $response[31]['country_code'] = 'SL';
-        $response[31]['country_name'] = 'Sumatera Selatan';
-
-        $response[32]['country_code'] = 'SV';
-        $response[32]['country_name'] = 'Sumatera Utara';
-
+        unset($response[0]);
 
         echo json_encode($response);
         exit;
     }
+
+    public function getCountryOptions()
+    {
+        $options    = false;
+        $useCache   = Mage::app()->useCache('config');
+        if ($useCache) {
+            $cacheId    = 'DIRECTORY_COUNTRY_SELECT_STORE_' . Mage::app()->getStore()->getCode();
+            $cacheTags  = array('config');
+            if ($optionsCache = Mage::app()->loadCache($cacheId)) {
+                $options = unserialize($optionsCache);
+            }
+        }
+
+        if ($options == false) {
+            $options = $this->getCountryCollection()->toOptionArray();
+            if ($useCache) {
+                Mage::app()->saveCache(serialize($options), $cacheId, $cacheTags);
+            }
+        }
+        return $options;
+    }
+
+    public function getCountryCollection()
+    {
+        if (!$this->_countryCollection) {
+            $this->_countryCollection = Mage::getSingleton('directory/country')->getResourceCollection()
+                ->loadByStore();
+        }
+        return $this->_countryCollection;
+    }
+
     public function getStateAction()
     {
         /*$countryList = Mage::getResourceModel('directory/country_collection')
@@ -1770,6 +1953,16 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
         exit();*/
 
         $country_id = $this->getRequest()->getPost('country_id');
+
+        $token = $this->getRequest()->getPost('token');
+
+        if($this->tokenval() != $token)
+        {
+            $response['msg'] = 'You are not authorized to access this';
+            $response['status'] = '1';
+            echo json_encode($response);
+            exit;
+        }
 
         //$states = Mage::getModel('directory/country')->load($country_id)->getRegions();
 
@@ -1801,6 +1994,16 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
     {
         $state_id = $this->getRequest()->getPost('region_name');
 
+        $token = $this->getRequest()->getPost('token');
+
+        if($this->tokenval() != $token)
+        {
+            $response['msg'] = 'You are not authorized to access this';
+            $response['status'] = '1';
+            echo json_encode($response);
+            exit;
+        }
+
         $connectionRead = Mage::getSingleton('core/resource')->getConnection('core_read');
 
         $select = $connectionRead->select()
@@ -1824,6 +2027,16 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
     public function shippingAction()
     {
         $response = array();
+
+        $token = $this->getRequest()->getPost('token');
+
+        if($this->tokenval() != $token)
+        {
+            $response['msg'] = 'You are not authorized to access this';
+            $response['status'] = '1';
+            echo json_encode($response);
+            exit;
+        }
 
         $connectionRead = Mage::getSingleton('core/resource')->getConnection('core_read');
 
@@ -1856,6 +2069,16 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 
         $response = array();
 
+        $token = $this->getRequest()->getPost('token');
+
+        if($this->tokenval() != $token)
+        {
+            $response['msg'] = 'You are not authorized to access this';
+            $response['status'] = '1';
+            echo json_encode($response);
+            exit;
+        }
+
         $i=0;
         foreach ($payments as $paymentCode=>$paymentModel) {
 
@@ -1885,6 +2108,16 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
     public function getOrderHistoryAction()
     {
         $uid = $this->getRequest()->getPost('uid');
+
+        $token = $this->getRequest()->getPost('token');
+
+        if($this->tokenval() != $token)
+        {
+            $response['msg'] = 'You are not authorized to access this';
+            $response['status'] = '1';
+            echo json_encode($response);
+            exit;
+        }
 
         $collection = Mage::getModel('sales/order')
             ->getCollection()
@@ -1923,6 +2156,16 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
         $order = Mage::getModel("sales/order")->load($orderId);
 
         $response = array();
+
+        $token = $this->getRequest()->getPost('token');
+
+        if($this->tokenval() != $token)
+        {
+            $response['msg'] = 'You are not authorized to access this';
+            $response['status'] = '1';
+            echo json_encode($response);
+            exit;
+        }
 
         $orderItems = $order->getItemsCollection();
         $i=0;
@@ -1991,6 +2234,16 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 
     public function contactInfoAction()
     {
+        $token = $this->getRequest()->getPost('token');
+
+        if($this->tokenval() != $token)
+        {
+            $response['msg'] = 'You are not authorized to access this';
+            $response['status'] = '1';
+            echo json_encode($response);
+            exit;
+        }
+
         $contactinfo = '<p>Jl. KH Mohamad Mansyur No. 14</p>
                     <p>Kel. Duri Pulo Kec. Gambir</p>
                     <p>Jakarta Pusat 10140</p>';
@@ -2029,6 +2282,16 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
     public function contactMailAction()
     {
         $post = $this->getRequest()->getPost();
+
+        $token = $this->getRequest()->getPost('token');
+
+        if($this->tokenval() != $token)
+        {
+            $response['msg'] = 'You are not authorized to access this';
+            $response['status'] = '1';
+            echo json_encode($response);
+            exit;
+        }
 
         $translate = Mage::getSingleton('core/translate');
         /* @var $translate Mage_Core_Model_Translate */

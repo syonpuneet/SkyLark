@@ -70,6 +70,7 @@ public class Constant {
 
 
 
+	public static  String token_value="";
 	public static int tabs_indicator_color = 0xFFffffff;
 	
 	public static int map_line_color= 0xFF2E9CC0;
@@ -80,6 +81,7 @@ public class Constant {
 	public static String user_email = "email";
 	
 	public static String user_id = "id";
+	public static String token = "token";
 	public static String entity_id = "entity_id";
 	public static String signupid_encrypted = "signupid_encrypted";
 	public static String user_name = "username";
@@ -297,6 +299,8 @@ public class Constant {
 						bodyBuilder.append('&');
 					}
 				}
+
+				bodyBuilder.append('&').append("token").append("=").append(token_value);
 				String body = bodyBuilder.toString();
 				Log.i("Reording app", "Posting '" + body + "' to " + path);
 

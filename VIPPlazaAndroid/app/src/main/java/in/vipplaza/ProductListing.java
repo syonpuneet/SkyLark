@@ -68,7 +68,7 @@ public class ProductListing extends AppCompatActivity implements View.OnClickLis
     LinearLayout sort_layout, filter_layout;
     TextView sort_text, name_sort;
     int sort_by_selected_item = 0;
-    String order_price = "ASC", order_name = "ASC";
+    String order_price = "ASC", order_name = "ASC",click_val="name";
     TextView total_product;
 
     boolean isPriceAssending = true;
@@ -273,6 +273,7 @@ public class ProductListing extends AppCompatActivity implements View.OnClickLis
             @Override
             public void onClick(View v) {
                 PriceSorting();
+                click_val="price";
                 progressBar.setVisibility(View.VISIBLE);
                 gridView.setVisibility(View.GONE);
                 total_product.setVisibility(View.GONE);
@@ -285,6 +286,7 @@ public class ProductListing extends AppCompatActivity implements View.OnClickLis
             @Override
             public void onClick(View v) {
                 NameSorting();
+                click_val="name";
                 progressBar.setVisibility(View.VISIBLE);
                 gridView.setVisibility(View.GONE);
                 total_product.setVisibility(View.GONE);
@@ -418,6 +420,8 @@ public class ProductListing extends AppCompatActivity implements View.OnClickLis
                 parameter.put("cat_id", cat_id);
                 parameter.put("order_price", order_price);
                 parameter.put("order_name", order_name);
+                parameter.put("click_val", click_val);
+
 
 
                 try {

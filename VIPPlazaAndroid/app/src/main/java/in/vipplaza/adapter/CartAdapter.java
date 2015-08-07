@@ -182,12 +182,21 @@ public class CartAdapter extends ArrayAdapter<InfoCart> {
                                     Constant.showAlertDialog(activity, error, false);
 
                                 } else {
-                                    holder.qty.setText(items[pos]);
 
-                                    if(activity instanceof CartActivity){
-                                        ((CartActivity)activity).UpdateCart(info.get(position).id,""+qty, info.get(position).entity_id);
+                                    if (info.get(position).cart_pos != pos) {
+                                        holder.qty.setText(items[pos]);
+
+                                        String click_val = "";
+                                        if (info.get(position).cart_pos < pos) {
+                                            click_val = "plus";
+                                        } else {
+                                            click_val = "minus";
+                                        }
+
+                                        if (activity instanceof CartActivity) {
+                                            ((CartActivity) activity).UpdateCart(info.get(position).id, "" + qty, info.get(position).entity_id, click_val);
+                                        }
                                     }
-
 
                                 }
 

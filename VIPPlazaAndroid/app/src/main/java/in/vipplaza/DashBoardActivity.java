@@ -197,7 +197,10 @@ public class DashBoardActivity extends AppCompatActivity implements View.OnClick
 
             navDrawerItems.clear();
 
-            JSONArray arrjson = new JSONArray(result);
+
+            JSONObject obj = new JSONObject(result);
+
+            JSONArray arrjson = obj.getJSONArray("response");
 
             NavdrwableIems info;
 

@@ -505,7 +505,7 @@ public class CartActivity extends AppCompatActivity {
     }
 
 
-    public void UpdateCart(final String product_id, final String qty, final String entity_id) {
+    public void UpdateCart(final String product_id, final String qty, final String entity_id, final String click_val) {
         new AsyncTask<Void, Integer, String>() {
 
             int status;
@@ -541,6 +541,7 @@ public class CartActivity extends AppCompatActivity {
                 parameter.put("qty", qty);
                 parameter.put("uid", mPref.getString(Constant.user_id,""));
                 parameter.put("entity_id",entity_id);
+                parameter.put("click_val",click_val);
 
 
 

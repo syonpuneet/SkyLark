@@ -12,6 +12,9 @@ import android.view.MenuItem;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -169,6 +172,21 @@ public class SplashActivty extends AppCompatActivity {
             protected void onPostExecute(String result) {
 
                 super.onPostExecute(result);
+
+
+                try {
+
+
+
+
+                    JSONObject obj = new JSONObject(result);
+
+                  Constant.token_value=obj.getString("token");
+                } catch (JSONException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+
+                }
 
                finish();
 
