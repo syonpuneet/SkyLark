@@ -93,7 +93,7 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 		$address->setCustomerId($customer->getId())
 				->setFirstname($customer->getFirstname())
 				->setMiddleName($customer->getMiddlename())
-				->setLastname($customer->getLastname())
+				>setLastname($customer->getLastname())
 				->setCountryId('HR')
 				//->setRegionId('1') //state/province, only needed if the country is USA
 				->setPostcode('31000')
@@ -1109,7 +1109,8 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 		$uid = $this->getRequest()->getPost('uid');
         $pid = $this->getRequest()->getPost('pid');
 		$pqty = $this->getRequest()->getPost('qty');
-        $params['cptions']['size_clothes'] = $this->getRequest()->getPost('size');
+        $size = $this->getRequest()->getPost('size');
+        $params['cptions']['size_clothes'] = $size;
 
         $token = $this->getRequest()->getPost('token');
 
@@ -1125,13 +1126,11 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 
         $selectrows = "SELECT `sales_flat_quote`.* FROM `sales_flat_quote` WHERE customer_id= ".$uid." AND is_active = '1' AND COALESCE(reserved_order_id, '') = ''";
 
-        $rowArray = $connectionRead->fetchAll($selectrows);
+        $rowArray = $connectionRead->fetchRow($selectrows);
 
-        $response = array();
-        $j=0;
-        //if(!empty($entity_id)) {
+        $qtycount = $rowArray['items_count'];
 
-        $qtycount = 0;
+        /*$qtycount = 0;
         $items = array();
         foreach ($rowArray as $row) {
             $select = $connectionRead->select()
@@ -1150,7 +1149,7 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
                     }
                 }
             }
-        }
+        }*/
 
         $_product = Mage::getModel('catalog/product')->load($pid);
 
@@ -1221,23 +1220,161 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 
         try {
 
-            $cart = Mage::getModel('checkout/cart');
-            $cart->init();
-            $cart->addProduct($_product, $params);
-            $cart->save();
-
-            $db_write = Mage::getSingleton('core/resource')->getConnection('core_read');
-            $sqlQuery = "SELECT quote_id FROM sales_flat_quote_item ORDER BY item_id DESC LIMIT 1;";
-            $rowArray = $db_write->fetchRow($sqlQuery);
-            $entity_id = $rowArray['quote_id'];
-
             $customerData = Mage::getModel('customer/customer')->load($uid)->getData();
 
-            $connectionWrite = Mage::getSingleton('core/resource')->getConnection('core_write');
+            $connectionRead = Mage::getSingleton('core/resource')->getConnection('core_read');
 
-            //Update customer Id
-            $date = date('Y-m-d h:i:s');
-            $connectionWrite->query("update sales_flat_quote set customer_id = '".$uid."', customer_email = '".$customerData['email']."',customer_firstname = '".$customerData['firstname']."',customer_lastname = '".$customerData['lastname']."',customer_gender = '".$customerData['gender']."', updated_at = '".$date."'  WHERE entity_id = ".$entity_id);
+            $selectrows = "SELECT `sales_flat_quote`.* FROM `sales_flat_quote` WHERE customer_id= ".$uid." AND is_active = '1' AND COALESCE(reserved_order_id, '') = ''";
+
+            $rowArray = $connectionRead->fetchRow($selectrows);
+
+            if(!empty($rowArray))
+            {
+                $entity_id = $rowArray['entity_id'];
+                $db_write = Mage::getSingleton('core/resource')->getConnection('core_read');
+                $sqlQuerys = "SELECT * FROM sales_flat_quote_item WHERE quote_id =".$rowArray['entity_id']." AND product_id = ".$pid;
+                $rowArrays = $db_write->fetchRow($sqlQuerys);
+
+                if(!empty($rowArrays))
+                {
+                    if($rowArrays['product_type'] == 'configurable')
+                    {
+                        $sqlQueryss = "SELECT * FROM sales_flat_quote_item WHERE parent_item_id =".$rowArrays['item_id'];
+                        $rowArrayss = $db_write->fetchRow($sqlQueryss);
+
+                        $oldsize = explode('(', $rowArrayss['name']);
+                        if(isset($oldsize[1])) {
+                            $newsize = str_replace(' )', '', $oldsize[1]);
+                        }
+                        else{
+                            $oldsize = explode('-', $rowArrayss['name']);
+                            if(isset($oldsize[1]))
+                            {
+                                $newsize = $oldsize[1];
+                            }
+                            else
+                            {
+                                $oldsize = explode('\'', $rowArrayss['name']);
+                                if(isset($oldsize[1]))
+                                {
+                                    $newsize = $size[1];
+                                }
+                            }
+                        }
+
+                        if($newsize == $size)
+                        {
+                            $connections = Mage::getSingleton('core/resource')->getConnection('core_write');
+                            $date = date('Y-m-d h:i:s');
+                            $totqty = $rowArrays['qty'] + $pqty;
+                            $totprice = $_product->getSpecialPrice() * $totqty;
+                            $connections->query("UPDATE `sales_flat_quote_item` SET `updated_at`='".$date."',`qty`=".$totqty.",`price`=".$totprice.",`base_price`=".$totprice.",`row_total`=".$totprice.",`base_row_total`=".$totprice.",`price_incl_tax`=".$totprice.",`base_price_incl_tax`=".$totprice.",`row_total_incl_tax`=".$totprice.",`base_row_total_incl_tax`=".$totprice." WHERE product_id =".$pid." AND product_type ='configurable'");
+
+                            $rowqty = $rowArray['items_qty'] + $pqty;
+                            $connectionquote = Mage::getSingleton('core/resource')->getConnection('core_write');
+                            $connectionquote->query("UPDATE `sales_flat_quote` SET `items_qty`=".$rowqty." WHERE `entity_id`=".$rowArray['entity_id']);
+                        }
+                        else
+                        {
+                            $connectionWrit = Mage::getSingleton('core/resource')->getConnection('core_write');
+
+                            $date = date('Y-m-d h:i:s');
+                            $sku = $_product->getSku();
+                            $name = $_product->getName();
+                            $price = $_product->getSpecialPrice() * $pqty;
+                            $connectionWrit->query("INSERT INTO `sales_flat_quote_item`(`quote_id`, `created_at`, `updated_at`, `product_id`, `store_id`, `is_virtual`, `sku`, `name`, `weight`, `qty`, `price`, `base_price`, `row_total`, `base_row_total`, `row_weight`, `product_type`, `price_incl_tax`, `base_price_incl_tax`, `row_total_incl_tax`, `base_row_total_incl_tax`, `weee_tax_disposition`, `weee_tax_row_disposition`, `base_weee_tax_disposition`, `base_weee_tax_row_disposition`, `weee_tax_applied`, `weee_tax_applied_amount`, `weee_tax_applied_row_amount`, `base_weee_tax_applied_amount`, `base_weee_tax_applied_row_amnt`) VALUES (".$rowArray['entity_id'].",'".$date."','".$date."',".$pid.",'1','0','".$sku."','".$name."','1.0000',".$pqty.",".$price.",".$price.",".$price.",".$price.",'1.0000','configurable',".$price.",".$price.",".$price.",".$price.",'0.0000','0.0000','0.0000','0.0000','a:0:{}','0.0000','0.0000','0.0000','')");
+
+                            $db_write = Mage::getSingleton('core/resource')->getConnection('core_write');
+                            $sqlQuery = "SELECT item_id FROM sales_flat_quote_item ORDER BY item_id DESC LIMIT 1;";
+                            $rowArrayes = $db_write->fetchRow($sqlQuery);
+                            $item_id = $rowArrayes['item_id'];
+
+                            $connectionWri = Mage::getSingleton('core/resource')->getConnection('core_write');
+                            $sname = $name.'( '.$size.' )';
+                            $connectionWri->query("INSERT INTO `sales_flat_quote_item` (`quote_id`, `created_at`, `updated_at`, `product_id`, `store_id`, `parent_item_id`, `is_virtual`, `sku`, `name`, `weight`, `qty`, `price`, `base_price`, `row_total`, `base_row_total`, `row_weight`, `product_type`, `price_incl_tax`, `base_price_incl_tax`, `row_total_incl_tax`, `base_row_total_incl_tax`, `weee_tax_disposition`, `weee_tax_row_disposition`, `base_weee_tax_disposition`, `base_weee_tax_row_disposition`, `weee_tax_applied`, `weee_tax_applied_amount`, `weee_tax_applied_row_amount`, `base_weee_tax_applied_amount`, `base_weee_tax_applied_row_amnt`) VALUES (".$rowArray['entity_id'].",'".$date."','".$date."',".$pid.",'1',".$item_id.",'0','".$sku."','".$sname."','1.0000',".$pqty.",'0.0000','0.0000','0.0000','0.0000','1.0000','simple','0.0000','0.0000','0.0000','0.0000','0.0000','0.0000','0.0000','0.0000','a:0:{}','0.0000','0.0000','0.0000','')");
+
+                            $rowqty = $rowArray['items_qty'] + $pqty;
+                            $rowcount = $rowArray['items_count'] + $pqty;
+                            $connectionquote = Mage::getSingleton('core/resource')->getConnection('core_write');
+                            $connectionquote->query("UPDATE `sales_flat_quote` SET `items_count`=".$rowcount.", `items_qty`=".$rowqty." WHERE `entity_id`=".$rowArray['entity_id']);
+                        }
+                    }
+
+                    if($rowArrays['product_type'] == 'simple')
+                    {
+                        $connections = Mage::getSingleton('core/resource')->getConnection('core_write');
+                        $date = date('Y-m-d h:i:s');
+                        $totqty = $rowArrays['qty'] + $pqty;
+                        $totprice = $_product->getSpecialPrice() * $totqty;
+                        $connections->query("UPDATE `sales_flat_quote_item` SET `updated_at`='".$date."',`qty`=".$totqty.",`price`=".$totprice.",`base_price`=".$totprice.",`row_total`=".$totprice.",`base_row_total`=".$totprice.",`price_incl_tax`=".$totprice.",`base_price_incl_tax`=".$totprice.",`row_total_incl_tax`=".$totprice.",`base_row_total_incl_tax`=".$totprice." WHERE product_id =".$pid." AND product_type ='simple'");
+
+                        $rowqty = $rowArray['items_qty'] + $pqty;
+                        $connectionquote = Mage::getSingleton('core/resource')->getConnection('core_write');
+                        $connectionquote->query("UPDATE `sales_flat_quote` SET `items_qty`=".$rowqty." WHERE `entity_id`=".$rowArray['entity_id']);
+                    }
+                }
+                else
+                {
+                    if($_product->getTypeId() == "configurable")
+                    {
+                        $connectionWrit = Mage::getSingleton('core/resource')->getConnection('core_write');
+
+                        $date = date('Y-m-d h:i:s');
+                        $sku = $_product->getSku();
+                        $name = $_product->getName();
+                        $price = $_product->getSpecialPrice() * $pqty;
+                        $connectionWrit->query("INSERT INTO `sales_flat_quote_item`(`quote_id`, `created_at`, `updated_at`, `product_id`, `store_id`, `is_virtual`, `sku`, `name`, `weight`, `qty`, `price`, `base_price`, `row_total`, `base_row_total`, `row_weight`, `product_type`, `price_incl_tax`, `base_price_incl_tax`, `row_total_incl_tax`, `base_row_total_incl_tax`, `weee_tax_disposition`, `weee_tax_row_disposition`, `base_weee_tax_disposition`, `base_weee_tax_row_disposition`, `weee_tax_applied`, `weee_tax_applied_amount`, `weee_tax_applied_row_amount`, `base_weee_tax_applied_amount`, `base_weee_tax_applied_row_amnt`) VALUES (".$rowArray['entity_id'].",'".$date."','".$date."',".$pid.",'1','0','".$sku."','".$name."','1.0000',".$pqty.",".$price.",".$price.",".$price.",".$price.",'1.0000','configurable',".$price.",".$price.",".$price.",".$price.",'0.0000','0.0000','0.0000','0.0000','a:0:{}','0.0000','0.0000','0.0000','')");
+                        //$connectionWrit->query("UPDATE `sales_flat_quote_item` SET `quote_id`=".$rowArray['entity_id'].",`created_at`='".$date."',`updated_at`='".$date."',`product_id`=".$pid.",`store_id`=1,`parent_item_id`='',`is_virtual`=0,`sku`='".$sku."',`name`='".$name."',`description`='',`applied_rule_ids`='',`additional_data`='',`free_shipping`=0,`is_qty_decimal`=0,`no_discount`=0,`weight`='1.0000',`qty`=".$pqty.",`price`=".$price.",`base_price`=".$price.",`custom_price`='',`discount_percent`='0',`discount_amount`='0',`base_discount_amount`='0',`tax_percent`='0',`tax_amount`='0',`base_tax_amount`='0',`row_total`=".$price.",`base_row_total`=".$price.",`row_total_with_discount`='0',`row_weight`='1.0000',`product_type`='configurable',`base_tax_before_discount`='',`tax_before_discount`='',`original_custom_price`='',`redirect_url`='',`base_cost`='',`price_incl_tax`=".$price.",`base_price_incl_tax`=".$price.",`row_total_incl_tax`=".$price.",`base_row_total_incl_tax`=".$price.",`hidden_tax_amount`=0,`base_hidden_tax_amount`=0,`gift_message_id`='',`weee_tax_disposition`='0.0000',`weee_tax_row_disposition`='0.0000',`base_weee_tax_disposition`='0.0000',`base_weee_tax_row_disposition`='0.0000',`weee_tax_applied`='a:0:{}',`weee_tax_applied_amount`='0.0000',`weee_tax_applied_row_amount`='0.0000',`base_weee_tax_applied_amount`='0.0000',`base_weee_tax_applied_row_amnt`='' WHERE 1");
+
+                        $db_write = Mage::getSingleton('core/resource')->getConnection('core_write');
+                        $sqlQuery = "SELECT item_id FROM sales_flat_quote_item ORDER BY item_id DESC LIMIT 1;";
+                        $rowArrayes = $db_write->fetchRow($sqlQuery);
+                        $item_id = $rowArrayes['item_id'];
+
+                        $connectionWri = Mage::getSingleton('core/resource')->getConnection('core_write');
+                        $sname = $name.'( '.$size.' )';
+                        $connectionWri->query("INSERT INTO `sales_flat_quote_item` (`quote_id`, `created_at`, `updated_at`, `product_id`, `store_id`, `parent_item_id`, `is_virtual`, `sku`, `name`, `weight`, `qty`, `price`, `base_price`, `row_total`, `base_row_total`, `row_weight`, `product_type`, `price_incl_tax`, `base_price_incl_tax`, `row_total_incl_tax`, `base_row_total_incl_tax`, `weee_tax_disposition`, `weee_tax_row_disposition`, `base_weee_tax_disposition`, `base_weee_tax_row_disposition`, `weee_tax_applied`, `weee_tax_applied_amount`, `weee_tax_applied_row_amount`, `base_weee_tax_applied_amount`, `base_weee_tax_applied_row_amnt`) VALUES (".$rowArray['entity_id'].",'".$date."','".$date."',".$pid.",'1',".$item_id.",'0','".$sku."','".$sname."','1.0000',".$pqty.",'0.0000','0.0000','0.0000','0.0000','1.0000','simple','0.0000','0.0000','0.0000','0.0000','0.0000','0.0000','0.0000','0.0000','a:0:{}','0.0000','0.0000','0.0000','')");
+                        //$connectionWri->query("UPDATE `sales_flat_quote_item` SET `quote_id`=".$rowArray['entity_id'].",`created_at`='".$date."',`updated_at`='".$date."',`product_id`=".$pid.",`store_id`=1,`parent_item_id`='',`is_virtual`=0,`sku`='".$sku."',`name`='".$sname."',`description`='',`applied_rule_ids`='',`additional_data`='',`free_shipping`=0,`is_qty_decimal`=0,`no_discount`=0,`weight`='1.0000',`qty`=".$pqty.",`price`='0',`base_price`='0',`custom_price`='',`discount_percent`='0',`discount_amount`='0',`base_discount_amount`='0',`tax_percent`='0',`tax_amount`='0',`base_tax_amount`='0',`row_total`='0',`base_row_total`='0',`row_total_with_discount`='0',`row_weight`='0.0000',`product_type`='simple',`base_tax_before_discount`='',`tax_before_discount`='',`original_custom_price`='',`redirect_url`='',`base_cost`='',`price_incl_tax`='',`base_price_incl_tax`='',`row_total_incl_tax`='',`base_row_total_incl_tax`='',`hidden_tax_amount`='',`base_hidden_tax_amount`='',`gift_message_id`='',`weee_tax_disposition`='0.0000',`weee_tax_row_disposition`='0.0000',`base_weee_tax_disposition`='0.0000',`base_weee_tax_row_disposition`='0.0000',`weee_tax_applied`='a:0:{}',`weee_tax_applied_amount`='0.0000',`weee_tax_applied_row_amount`='0.0000',`base_weee_tax_applied_amount`='0.0000',`base_weee_tax_applied_row_amnt`='' WHERE 1");
+                    }
+
+                    if($_product->getTypeId() == "simple")
+                    {
+                        $connectionWrit = Mage::getSingleton('core/resource')->getConnection('core_write');
+
+                        $date = date('Y-m-d h:i:s');
+                        $sku = $_product->getSku();
+                        $name = $_product->getName();
+                        $price = $_product->getSpecialPrice() * $pqty;
+
+                        $connectionWrit->query("INSERT INTO `sales_flat_quote_item`(`quote_id`, `created_at`, `updated_at`, `product_id`, `store_id`, `parent_item_id`, `is_virtual`, `sku`, `name`, `weight`, `qty`, `price`, `base_price`, `row_total`, `base_row_total`, `row_weight`, `product_type`, `price_incl_tax`, `base_price_incl_tax`, `row_total_incl_tax`, `base_row_total_incl_tax`, `weee_tax_disposition`, `weee_tax_row_disposition`, `base_weee_tax_disposition`, `base_weee_tax_row_disposition`, `weee_tax_applied`, `weee_tax_applied_amount`, `weee_tax_applied_row_amount`, `base_weee_tax_applied_amount`, `base_weee_tax_applied_row_amnt`) VALUES (".$rowArray['entity_id'].",'".$date."','".$date."',".$pid.",'1','','0','".$sku."','".$name."','1.0000',".$pqty.",".$price.",".$price.",".$price.",".$price.",'1.0000','simple',".$price.",".$price.",".$price.",".$price.",'0.0000','0.0000','0.0000','0.0000','a:0:{}','0.0000','0.0000','0.0000','')");
+
+                        //$connectionWrit->query("UPDATE `sales_flat_quote_item` SET `quote_id`=".$rowArray['entity_id'].",`created_at`='".$date."',`updated_at`='".$date."',`product_id`=".$pid.",`store_id`=1,`parent_item_id`='',`is_virtual`=0,`sku`='".$sku."',`name`='".$name."',`description`='',`applied_rule_ids`='',`additional_data`='',`free_shipping`=0,`is_qty_decimal`=0,`no_discount`=0,`weight`='1.0000',`qty`=".$pqty.",`price`=".$price.",`base_price`=".$price.",`custom_price`='',`discount_percent`='0',`discount_amount`='0',`base_discount_amount`='0',`tax_percent`='0',`tax_amount`='0',`base_tax_amount`='0',`row_total`=".$price.",`base_row_total`=".$price.",`row_total_with_discount`='0',`row_weight`='1.0000',`product_type`='configurable',`base_tax_before_discount`='',`tax_before_discount`='',`original_custom_price`='',`redirect_url`='',`base_cost`='',`price_incl_tax`=".$price.",`base_price_incl_tax`=".$price.",`row_total_incl_tax`=".$price.",`base_row_total_incl_tax`=".$price.",`hidden_tax_amount`=0,`base_hidden_tax_amount`=0,`gift_message_id`='',`weee_tax_disposition`='0.0000',`weee_tax_row_disposition`='0.0000',`base_weee_tax_disposition`='0.0000',`base_weee_tax_row_disposition`='0.0000',`weee_tax_applied`='a:0:{}',`weee_tax_applied_amount`='0.0000',`weee_tax_applied_row_amount`='0.0000',`base_weee_tax_applied_amount`='0.0000',`base_weee_tax_applied_row_amnt`='' WHERE 1");
+                    }
+
+                    $rowqty = $rowArray['items_qty'] + $pqty;
+                    $rowcount = $rowArray['items_count'] + $pqty;
+                    $connectionquote = Mage::getSingleton('core/resource')->getConnection('core_write');
+                    $connectionquote->query("UPDATE `sales_flat_quote` SET `items_count`=".$rowcount.", `items_qty`=".$rowqty." WHERE `entity_id`=".$rowArray['entity_id']);
+                }
+            }
+            else
+            {
+                $cart = Mage::getModel('checkout/cart');
+                $cart->init();
+                $cart->addProduct($_product, $params);
+                $cart->save();
+
+                $db_write = Mage::getSingleton('core/resource')->getConnection('core_read');
+                $sqlQuery = "SELECT quote_id FROM sales_flat_quote_item ORDER BY item_id DESC LIMIT 1;";
+                $rowArray = $db_write->fetchRow($sqlQuery);
+                $entity_id = $rowArray['quote_id'];
+
+                $connectionWrite = Mage::getSingleton('core/resource')->getConnection('core_write');
+
+                //Update customer Id
+                $date = date('Y-m-d h:i:s');
+                $connectionWrite->query("update sales_flat_quote set customer_id = '".$uid."', customer_email = '".$customerData['email']."',customer_firstname = '".$customerData['firstname']."',customer_lastname = '".$customerData['lastname']."',customer_gender = '".$customerData['gender']."', updated_at = '".$date."'  WHERE entity_id = ".$entity_id);
+            }
 
             $connectionWrites = Mage::getSingleton('core/resource')->getConnection('core_write');
 
@@ -1276,10 +1413,13 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 
         $selectrows = "SELECT `sales_flat_quote`.* FROM `sales_flat_quote` WHERE customer_id= ".$uid." AND is_active = '1' AND COALESCE(reserved_order_id, '') = ''";
 
-        $rowArray = $connectionRead->fetchAll($selectrows);
+        $rowArray = $connectionRead->fetchRow($selectrows);
+
+        $count = $rowArray['items_count'];
+        $entity_id = $rowArray['entity_id'];
 
         $response = array();
-        $j=0;
+        /*$j=0;
         $count = 0;
         foreach ($rowArray as $row) {
             $select = $connectionRead->select()
@@ -1312,14 +1452,14 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
                     }
                 }
             }
-        }
+        }*/
 
 
         if($count > 0) {
             $response['msg'] = '';
             $response['status'] = 1;
             $response['count'] = $count;
-            //$response['entity_id'] = $entity_id;
+            $response['entity_id'] = $entity_id;
         }
         else{
             $response['msg'] = '';
@@ -1351,23 +1491,96 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 
         $connectionRead = Mage::getSingleton('core/resource')->getConnection('core_read');
 
-        $selectrows = "SELECT `sales_flat_quote`.* FROM `sales_flat_quote` WHERE customer_id= ".$uid." AND is_active = '1' AND COALESCE(reserved_order_id, '') = ''";
+        /*$selectrows = "SELECT `sales_flat_quote`.* FROM `sales_flat_quote` WHERE customer_id= ".$uid." AND is_active = '1' AND COALESCE(reserved_order_id, '') = ''";
 
-        $rowArray = $connectionRead->fetchAll($selectrows);
+        $rowArray = $connectionRead->fetchRow($selectrows);*/
 
         $response = array();
-        $j=0;
 
+        $select = $connectionRead->select()
+            ->from('sales_flat_quote_item', array('*'))
+            ->where('quote_id=?', $entity_id);
 
-        $m=0;
-        foreach ($rowArray as $row) {
-            $select = $connectionRead->select()
-                ->from('sales_flat_quote_item', array('*'))
-                ->where('quote_id=?', $row['entity_id']);
+        $items = $connectionRead->fetchAll($select);
 
-            $items[] = $connectionRead->fetchAll($select);
+        $z=0;
+        foreach($items as $item)
+        {
+            $_product = Mage::getModel('catalog/product')->load($item['product_id']);
+
+            $_imgSize = 250;
+            $img = Mage::helper('catalog/image')->init($_product, 'small_image')->constrainOnly(true)->keepFrame(false)->resize($_imgSize)->__toString();
+
+            if ($item['price'] != 0) {
+                $response[$z]['entity_id'] = $item['quote_id'];
+                $response[$z]['id'] = $item['product_id'];
+                $response[$z]['name'] = $item['name'];
+                $response[$z]['sku'] = $item['sku'];
+                $response[$z]['ssku'] = $_product->getSsku();
+                $response[$z]['img'] = $img; //$_product->getImageUrl();
+
+                $qty = 0;
+                $min = (float)Mage::getModel('cataloginventory/stock_item')->loadByProduct($_product)->getNotifyStockQty();
+
+                if ($_product->isSaleable()) {
+                    if ($_product->getTypeId() == "configurable") {
+                        $associated_products = $_product->loadByAttribute('sku', $_product->getSku())->getTypeInstance()->getUsedProducts();
+                        foreach ($associated_products as $assoc) {
+                            $assocProduct = Mage::getModel('catalog/product')->load($assoc->getId());
+                            $qty += (int)Mage::getModel('cataloginventory/stock_item')->loadByProduct($assocProduct)->getQty();
+                        }
+                    } elseif ($_product->getTypeId() == 'grouped') {
+                        $qty = $min + 1;
+                    } elseif ($_product->getTypeId() == 'bundle') {
+                        $associated_products = $_product->getTypeInstance(true)->getSelectionsCollection(
+                            $_product->getTypeInstance(true)->getOptionsIds($_product), $_product);
+                        foreach ($associated_products as $assoc) {
+                            $qty += Mage::getModel('cataloginventory/stock_item')->loadByProduct($assoc)->getQty();
+                        }
+                    } else {
+                        $qty = (int)Mage::getModel('cataloginventory/stock_item')->loadByProduct($_product)->getQty();
+                    }
+                }
+
+                $response[$z]['qty'] = number_format($item['qty'], 0);
+                $response[$z]['totalqty'] = $qty;
+                $response[$z]['price'] = number_format($item['price'], 0, '', '.');
+                $response[$z]['mainprice'] = number_format($_product->getPrice(),0,",",".");
+                //$response[0]['speprice'] = number_format($_product->getSpecialPrice(),0,",",".");
+                $response[$z]['price_incl_tax'] = number_format($item['row_total_incl_tax'], 0, '', '.');
+                $submitqty = round($item['row_total_incl_tax'] / $item['price'],0);
+                $response[$z]['submitqty'] = $submitqty;
+                $total += $item['row_total_incl_tax'];
+            } else {
+                $size = explode('(', $item['name']);
+                if(isset($size[1])) {
+                    $response[$x]['size'] = str_replace(' )', '', $size[1]);
+                }
+                else{
+                    $size = explode('-', $item['name']);
+                    if(isset($size[1]))
+                    {
+                        $response[$x]['size'] = $size[1];
+                    }
+                    else
+                    {
+                        $size = explode('\'', $item['name']);
+                        if(isset($size[1]))
+                        {
+                            $response[$x]['size'] = $size[1];
+                        }
+                        else
+                        {
+                            $response[$x]['size'] = 'M';
+                        }
+                    }
+                }
+            }
+            $x = $z;
+            $z++;
         }
-        if(!empty($items)) {
+
+        /*if(!empty($items)) {
 
             for ($n=0; $n<count($items); $n++)
             {
@@ -1463,7 +1676,7 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
             }
                 //$x = $j;
                 $j++;
-        }
+        }*/
 
         //print_r(array_values($response));
 
@@ -1480,6 +1693,8 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
         $pid = $this->getRequest()->getPost('pid');
         $qty = $this->getRequest()->getPost('qty');
         $uid = $this->getRequest()->getPost('uid');
+        $size = $this->getRequest()->getPost('size');
+        $sku = $this->getRequest()->getPost('sku');
         $click_val = $this->getRequest()->getPost('click_val');
 
         $token = $this->getRequest()->getPost('token');
@@ -1494,72 +1709,60 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 
         $connectionRead = Mage::getSingleton('core/resource')->getConnection('core_read');
 
-        $selectrows = "SELECT `sales_flat_quote`.* FROM `sales_flat_quote` WHERE customer_id= ".$uid." AND is_active = '1' AND COALESCE(reserved_order_id, '') = ''";
+        /*$selectrows = "SELECT `sales_flat_quote`.* FROM `sales_flat_quote` WHERE customer_id= ".$uid." AND is_active = '1' AND COALESCE(reserved_order_id, '') = ''";
 
-        $rowArray = $connectionRead->fetchAll($selectrows);
+        $rowArray = $connectionRead->fetchAll($selectrows);*/
 
         $response = array();
         $j=0;
 
-        $qtycount = 0;
         $items = array();
-        //foreach ($rowArray as $row) {
-            $select = $connectionRead->select()
-                ->from('sales_flat_quote_item', array('*'))
-                ->where('quote_id=?', $entity_id)
-                ->where('product_id=?', $pid);
 
-            $items = $connectionRead->fetchRow($select);
-            $qtycount = number_format($items['qty'],0);
-        //}
-        /*if(!empty($items)) {
+        $select = $connectionRead->select()
+            ->from('sales_flat_quote_item', array('*'))
+            ->where('quote_id=?', $entity_id)
+            ->where('sku=?', $sku)
+            ->where('parent_item_id!=?', '');
 
-            for ($n=0; $n<count($items); $n++)
-            {
-                if (empty($items[$n]))
-                    unset($items[$n]);
+        $items = $connectionRead->fetchRow($select);
 
-                $myArray = $items;
-            }
+        $item_id = number_format($items['parent_item_id'],0);
 
-            $dataArray = array_values($myArray);
+        /*if($size !='')
+        {
+            $product = Mage::getModel('catalog/product')->load($items['product_id']);
 
-            for($z=0;$z<count($dataArray);$z++)
-            {
-                foreach($dataArray[$z] as $item)
-                {
-                    if ($item['price'] != 0) {
-                        $qty1 = number_format($item['qty'],0);
-                        $qtycount += $qty1;
-                    }
-                }
-            }
-        }*/
+            $stock = Mage::getModel('cataloginventory/stock_item')->loadByProduct($product);
 
-        $_product = Mage::getModel('catalog/product')->load($pid);
-
-        $pqty = 0;
-        $min = (float)Mage::getModel('cataloginventory/stock_item')->loadByProduct($_product)->getNotifyStockQty();
-
-        if ($_product->isSaleable()) {
-            if ($_product->getTypeId() == "configurable") {
-                $associated_products = $_product->loadByAttribute('sku', $_product->getSku())->getTypeInstance()->getUsedProducts();
-                foreach ($associated_products as $assoc){
-                    $assocProduct = Mage::getModel('catalog/product')->load($assoc->getId());
-                    $pqty += (int)Mage::getModel('cataloginventory/stock_item')->loadByProduct($assocProduct)->getQty();
-                }
-            } elseif ($_product->getTypeId() == 'grouped') {
-                $pqty = $min + 1;
-            } elseif ($_product->getTypeId() == 'bundle') {
-                $associated_products = $_product->getTypeInstance(true)->getSelectionsCollection(
-                    $_product->getTypeInstance(true)->getOptionsIds($_product), $_product);
-                foreach($associated_products as $assoc) {
-                    $pqty += Mage::getModel('cataloginventory/stock_item')->loadByProduct($assoc)->getQty();
-                }
-            } else {
-                $pqty = (int)Mage::getModel('cataloginventory/stock_item')->loadByProduct($_product)->getQty();
-            }
+            print_r($stock->getData()); exit;
         }
+        else
+        {*/
+            $_product = Mage::getModel('catalog/product')->load($pid);
+
+            $pqty = 0;
+            $min = (float)Mage::getModel('cataloginventory/stock_item')->loadByProduct($_product)->getNotifyStockQty();
+
+            if ($_product->isSaleable()) {
+                if ($_product->getTypeId() == "configurable") {
+                    $associated_products = $_product->loadByAttribute('sku', $_product->getSku())->getTypeInstance()->getUsedProducts();
+                    foreach ($associated_products as $assoc){
+                        $assocProduct = Mage::getModel('catalog/product')->load($assoc->getId());
+                        $pqty += (int)Mage::getModel('cataloginventory/stock_item')->loadByProduct($assocProduct)->getQty();
+                    }
+                } elseif ($_product->getTypeId() == 'grouped') {
+                    $pqty = $min + 1;
+                } elseif ($_product->getTypeId() == 'bundle') {
+                    $associated_products = $_product->getTypeInstance(true)->getSelectionsCollection(
+                        $_product->getTypeInstance(true)->getOptionsIds($_product), $_product);
+                    foreach($associated_products as $assoc) {
+                        $pqty += Mage::getModel('cataloginventory/stock_item')->loadByProduct($assoc)->getQty();
+                    }
+                } else {
+                    $pqty = (int)Mage::getModel('cataloginventory/stock_item')->loadByProduct($_product)->getQty();
+                }
+            }
+        //}
 
         $response = array();
 
@@ -1580,25 +1783,23 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
             exit;
         }
 
-        $connectionRead = Mage::getSingleton('core/resource')->getConnection('core_read');
-
-        $select = $connectionRead->select()
+        $selectArr = $connectionRead->select()
             ->from('sales_flat_quote_item', array('*'))
-            ->where('quote_id=?',$entity_id)
-            ->where('product_id=?',$pid);
+            ->where('item_id=?', $item_id);
 
-        $rowArray = $connectionRead->fetchRow($select);
+        $rowArray = $connectionRead->fetchRow($selectArr);
+        $qtycount = number_format($rowArray['qty'],0);
 
-        $price = $rowArray['price'];
+        $price = $_product->getSpecialPrice();
 
         $total = $price * $checkqty;
 
         $connection = Mage::getSingleton('core/resource')->getConnection('core_write');
 
-        $connection->query("update sales_flat_quote_item set qty = '".$checkqty."', row_total = '".$total."', base_row_total = '".$total."',price_incl_tax = '".$total."',base_price_incl_tax = '".$total."',row_total_incl_tax = '".$total."',base_row_total_incl_tax = '".$total."'  WHERE quote_id = ".$entity_id." AND product_id =".$pid);
+        $connection->query("update sales_flat_quote_item set qty = '".$checkqty."', price = '".$total."', base_price = '".$total."', row_total = '".$total."', base_row_total = '".$total."',price_incl_tax = '".$total."',base_price_incl_tax = '".$total."',row_total_incl_tax = '".$total."',base_row_total_incl_tax = '".$total."'  WHERE item_id = ".$item_id);
 
         $connectionwrite = Mage::getSingleton('core/resource')->getConnection('core_write');
-        $connectionwrite->query("update sales_flat_quote set items_count = '".$checkqty."', grand_total = '".$total."', base_grand_total = '".$total."', subtotal = '".$total."', base_subtotal = '".$total."' WHERE entity_id = ".$entity_id);
+        $connectionwrite->query("update sales_flat_quote set items_qty = '".$checkqty."', grand_total = '".$total."', base_grand_total = '".$total."', subtotal = '".$total."', base_subtotal = '".$total."' WHERE entity_id = ".$entity_id);
 
         $response['msg'] = 'Updated';
         $response['status'] = 1;
@@ -1610,6 +1811,7 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 	{
         $id = $this->getRequest()->getPost('pid'); // replace product id with your id
         $entity_id = $this->getRequest()->getPost('entity_id');
+        $sku = $this->getRequest()->getPost('sku');
         $token = $this->getRequest()->getPost('token');
 
         if($this->tokenval() != $token)
@@ -1620,9 +1822,37 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
             exit;
         }
 
+        $connectionRead = Mage::getSingleton('core/resource')->getConnection('core_read');
+
+        $select = $connectionRead->select()
+            ->from('sales_flat_quote_item', array('*'))
+            ->where('quote_id=?', $entity_id)
+            ->where('sku=?', $sku);
+
+        $items = $connectionRead->fetchRow($select);
+
+        $connectionReads = Mage::getSingleton('core/resource')->getConnection('core_read');
+
+        $selects = $connectionReads->select()
+            ->from('sales_flat_quote', array('*'))
+            ->where('entity_id=?', $entity_id);
+
+        $itemss = $connectionRead->fetchRow($selects);
+
+        $rowqty = $itemss['items_qty'] - $items['qty'];
+        $rowcount = $itemss['items_count'] - $items['qty'];
+
+        if($rowqty == 1)
+        {
+            $rowcount = 1;
+        }
+
+        $connectionquote = Mage::getSingleton('core/resource')->getConnection('core_write');
+        $connectionquote->query("UPDATE `sales_flat_quote` SET `items_count`=".$rowcount.", `items_qty`=".$rowqty." WHERE `entity_id`=".$entity_id);
+
         $connection = Mage::getSingleton('core/resource')->getConnection('core_write');
 
-        $__condition = array($connection->quoteInto('quote_id=?', $entity_id));
+        $__condition = array($connection->quoteInto('sku=?', $sku),$connection->quoteInto('quote_id=?', $entity_id));
         $connection->delete('sales_flat_quote_item', $__condition);
 
         //Mage::getSingleton('checkout/cart')->removeItem($id)->save();
@@ -2332,5 +2562,163 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
         }
 
         echo json_encode($response);
+    }
+
+    public function checkoutProcessAction()
+    {
+        $uid = $this->getRequest()->getPost('uid');
+        $entity_id = $this->getRequest()->getPost('entity_id');
+        $token = $this->getRequest()->getPost('token');
+
+        if($this->tokenval() != $token)
+        {
+            $response['msg'] = 'You are not authorized to access this';
+            $response['status'] = '1';
+            echo json_encode($response);
+            exit;
+        }
+
+        $connectionRead = Mage::getSingleton('core/resource')->getConnection('core_read');
+
+        /*$selectrows = "SELECT `sales_flat_quote`.* FROM `sales_flat_quote` WHERE customer_id= ".$uid." AND is_active = '1' AND COALESCE(reserved_order_id, '') = ''";
+
+        $rowArray = $connectionRead->fetchAll($selectrows);*/
+
+        $response = array();
+        $j=0;
+
+        $select = $connectionRead->select()
+            ->from('sales_flat_quote_item', array('*'))
+            ->where('quote_id=?', $entity_id);
+
+        $items = $connectionRead->fetchAll($select);
+
+        $z=0;
+        foreach($items as $item)
+        {
+            $_product = Mage::getModel('catalog/product')->load($item['product_id']);
+
+            $_imgSize = 250;
+            $img = Mage::helper('catalog/image')->init($_product, 'small_image')->constrainOnly(true)->keepFrame(false)->resize($_imgSize)->__toString();
+
+            if ($item['price'] != 0) {
+                $response[$z]['entity_id'] = $item['quote_id'];
+                $response[$z]['id'] = $item['product_id'];
+                $response[$z]['name'] = $item['name'];
+                $response[$z]['sku'] = $item['sku'];
+                $response[$z]['ssku'] = $_product->getSsku();
+                $response[$z]['img'] = $img; //$_product->getImageUrl();
+
+                $qty = 0;
+                $min = (float)Mage::getModel('cataloginventory/stock_item')->loadByProduct($_product)->getNotifyStockQty();
+
+                if ($_product->isSaleable()) {
+                    if ($_product->getTypeId() == "configurable") {
+                        $associated_products = $_product->loadByAttribute('sku', $_product->getSku())->getTypeInstance()->getUsedProducts();
+                        foreach ($associated_products as $assoc) {
+                            $assocProduct = Mage::getModel('catalog/product')->load($assoc->getId());
+                            $qty += (int)Mage::getModel('cataloginventory/stock_item')->loadByProduct($assocProduct)->getQty();
+                        }
+                    } elseif ($_product->getTypeId() == 'grouped') {
+                        $qty = $min + 1;
+                    } elseif ($_product->getTypeId() == 'bundle') {
+                        $associated_products = $_product->getTypeInstance(true)->getSelectionsCollection(
+                            $_product->getTypeInstance(true)->getOptionsIds($_product), $_product);
+                        foreach ($associated_products as $assoc) {
+                            $qty += Mage::getModel('cataloginventory/stock_item')->loadByProduct($assoc)->getQty();
+                        }
+                    } else {
+                        $qty = (int)Mage::getModel('cataloginventory/stock_item')->loadByProduct($_product)->getQty();
+                    }
+                }
+
+                $response[$z]['qty'] = number_format($item['qty'], 0);
+                $response[$z]['totalqty'] = $qty;
+                $response[$z]['price'] = number_format($item['price'], 0, '', '.');
+                $response[$z]['mainprice'] = number_format($_product->getPrice(),0,",",".");
+                //$response[0]['speprice'] = number_format($_product->getSpecialPrice(),0,",",".");
+                $response[$z]['price_incl_tax'] = number_format($item['row_total_incl_tax'], 0, '', '.');
+                $submitqty = round($item['row_total_incl_tax'] / $item['price'],0);
+                $response[$z]['submitqty'] = $submitqty;
+                $total += $item['row_total_incl_tax'];
+            } else {
+                $size = explode('(', $item['name']);
+                if(isset($size[1])) {
+                    $response[$x]['size'] = str_replace(' )', '', $size[1]);
+                }
+                else{
+                    $size = explode('-', $item['name']);
+                    if(isset($size[1]))
+                    {
+                        $response[$x]['size'] = $size[1];
+                    }
+                    else
+                    {
+                        $size = explode('\'', $item['name']);
+                        if(isset($size[1]))
+                        {
+                            $response[$x]['size'] = $size[1];
+                        }
+                        else
+                        {
+                            $response[$x]['size'] = 'M';
+                        }
+                    }
+                }
+            }
+            $x = $z;
+            $z++;
+        }
+
+        $data['data'] = array_values($response);
+        $data['subtotal'] = number_format($total, 0, '', '.');
+        $discount = ($total*15)/100;
+        $data['discount'] = $discount;
+        $data['totalprice'] = $total - $discount;
+        echo json_encode($data);
+
+    }
+
+    public function checkAvailibilityAction()
+    {
+        $skus = $this->getRequest()->getPost('skus');
+        $uid = $this->getRequest()->getPost('uid');
+        $token = $this->getRequest()->getPost('token');
+
+        if($this->tokenval() != $token)
+        {
+            $response['msg'] = 'You are not authorized to access this';
+            $response['status'] = '1';
+            echo json_encode($response);
+            exit;
+        }
+
+        $sku = explode(',',$skus);
+        if(isset($sku) && !empty($sku))
+        {
+            for($x=0;$x<count($sku);$x++)
+            {
+                $product = Mage::getModel('catalog/product')->loadByAttribute('sku', $sku[$x]);
+
+                $id = $product->getData('entity_id');
+
+                $_product = Mage::getModel('catalog/product')->load($id);
+
+                $stock = Mage::getModel('cataloginventory/stock_item')->loadByProduct($_product);
+
+                if($stock->getData('qty') > 0)
+                {
+                    $response[$sku[$x]]['msg'] = '';
+                    $response[$sku[$x]]['status'] = 1;
+                }
+                else{
+                    $response[$sku[$x]]['msg'] = '';
+                    $response[$sku[$x]]['status'] = 0;
+                }
+            }
+        }
+
+        echo json_encode($response);
+        exit;
     }
 }
