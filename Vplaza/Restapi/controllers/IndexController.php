@@ -1128,28 +1128,23 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 
         $rowArray = $connectionRead->fetchRow($selectrows);
 
-        $qtycount = $rowArray['items_count'];
+        $entity_id = $rowArray['entity_id'];
 
-        /*$qtycount = 0;
+        $select = $connectionRead->select()
+            ->from('sales_flat_quote_item', array('*'))
+            ->where('quote_id=?', $entity_id)
+            ->where('product_id=?', $pid);
+
+        $rowItems = $connectionRead->fetchAll($select);
+
+        $qtycount = 0;
         $items = array();
-        foreach ($rowArray as $row) {
-            $select = $connectionRead->select()
-                ->from('sales_flat_quote_item', array('*'))
-                ->where('quote_id=?', $row['entity_id'])
-                ->where('product_id=?', $pid);
-
-            $items = $connectionRead->fetchAll($select);
-
-            if(!empty($items)) {
-                foreach($items as $item)
-                {
-                    if ($item['price'] != 0) {
-                        $qty = number_format($item['qty'],0);
-                        $qtycount += $qty;
-                    }
-                }
+        foreach ($rowItems as $item) {
+            if ($item['price'] != 0) {
+                $qty = number_format($item['qty'],0);
+                $qtycount += $qty;
             }
-        }*/
+        }
 
         $_product = Mage::getModel('catalog/product')->load($pid);
 
@@ -1268,7 +1263,7 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
                             $date = date('Y-m-d h:i:s');
                             $totqty = $rowArrays['qty'] + $pqty;
                             $totprice = $_product->getSpecialPrice() * $totqty;
-                            $connections->query("UPDATE `sales_flat_quote_item` SET `updated_at`='".$date."',`qty`=".$totqty.",`price`=".$totprice.",`base_price`=".$totprice.",`row_total`=".$totprice.",`base_row_total`=".$totprice.",`price_incl_tax`=".$totprice.",`base_price_incl_tax`=".$totprice.",`row_total_incl_tax`=".$totprice.",`base_row_total_incl_tax`=".$totprice." WHERE product_id =".$pid." AND product_type ='configurable'");
+                            $connections->query("UPDATE `sales_flat_quote_item` SET `updated_at`='".$date."',`qty`=".$totqty.",`row_total`=".$totprice.",`base_row_total`=".$totprice.",`price_incl_tax`=".$totprice.",`base_price_incl_tax`=".$totprice.",`row_total_incl_tax`=".$totprice.",`base_row_total_incl_tax`=".$totprice." WHERE product_id =".$pid." AND product_type ='configurable'");
 
                             $rowqty = $rowArray['items_qty'] + $pqty;
                             $connectionquote = Mage::getSingleton('core/resource')->getConnection('core_write');
@@ -1306,7 +1301,7 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
                         $date = date('Y-m-d h:i:s');
                         $totqty = $rowArrays['qty'] + $pqty;
                         $totprice = $_product->getSpecialPrice() * $totqty;
-                        $connections->query("UPDATE `sales_flat_quote_item` SET `updated_at`='".$date."',`qty`=".$totqty.",`price`=".$totprice.",`base_price`=".$totprice.",`row_total`=".$totprice.",`base_row_total`=".$totprice.",`price_incl_tax`=".$totprice.",`base_price_incl_tax`=".$totprice.",`row_total_incl_tax`=".$totprice.",`base_row_total_incl_tax`=".$totprice." WHERE product_id =".$pid." AND product_type ='simple'");
+                        $connections->query("UPDATE `sales_flat_quote_item` SET `updated_at`='".$date."',`qty`=".$totqty.",`row_total`=".$totprice.",`base_row_total`=".$totprice.",`price_incl_tax`=".$totprice.",`base_price_incl_tax`=".$totprice.",`row_total_incl_tax`=".$totprice.",`base_row_total_incl_tax`=".$totprice." WHERE product_id =".$pid." AND product_type ='simple'");
 
                         $rowqty = $rowArray['items_qty'] + $pqty;
                         $connectionquote = Mage::getSingleton('core/resource')->getConnection('core_write');
@@ -1346,7 +1341,7 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
                         $name = $_product->getName();
                         $price = $_product->getSpecialPrice() * $pqty;
 
-                        $connectionWrit->query("INSERT INTO `sales_flat_quote_item`(`quote_id`, `created_at`, `updated_at`, `product_id`, `store_id`, `parent_item_id`, `is_virtual`, `sku`, `name`, `weight`, `qty`, `price`, `base_price`, `row_total`, `base_row_total`, `row_weight`, `product_type`, `price_incl_tax`, `base_price_incl_tax`, `row_total_incl_tax`, `base_row_total_incl_tax`, `weee_tax_disposition`, `weee_tax_row_disposition`, `base_weee_tax_disposition`, `base_weee_tax_row_disposition`, `weee_tax_applied`, `weee_tax_applied_amount`, `weee_tax_applied_row_amount`, `base_weee_tax_applied_amount`, `base_weee_tax_applied_row_amnt`) VALUES (".$rowArray['entity_id'].",'".$date."','".$date."',".$pid.",'1','','0','".$sku."','".$name."','1.0000',".$pqty.",".$price.",".$price.",".$price.",".$price.",'1.0000','simple',".$price.",".$price.",".$price.",".$price.",'0.0000','0.0000','0.0000','0.0000','a:0:{}','0.0000','0.0000','0.0000','')");
+                        $connectionWrit->query("INSERT INTO `sales_flat_quote_item`(`quote_id`, `created_at`, `updated_at`, `product_id`, `store_id`, `is_virtual`, `sku`, `name`, `weight`, `qty`, `price`, `base_price`, `row_total`, `base_row_total`, `row_weight`, `product_type`, `price_incl_tax`, `base_price_incl_tax`, `row_total_incl_tax`, `base_row_total_incl_tax`, `weee_tax_disposition`, `weee_tax_row_disposition`, `base_weee_tax_disposition`, `base_weee_tax_row_disposition`, `weee_tax_applied`, `weee_tax_applied_amount`, `weee_tax_applied_row_amount`, `base_weee_tax_applied_amount`, `base_weee_tax_applied_row_amnt`) VALUES (".$rowArray['entity_id'].",'".$date."','".$date."',".$pid.",'1','0','".$sku."','".$name."','1.0000',".$pqty.",".$price.",".$price.",".$price.",".$price.",'1.0000','simple',".$price.",".$price.",".$price.",".$price.",'0.0000','0.0000','0.0000','0.0000','a:0:{}','0.0000','0.0000','0.0000','')");
 
                         //$connectionWrit->query("UPDATE `sales_flat_quote_item` SET `quote_id`=".$rowArray['entity_id'].",`created_at`='".$date."',`updated_at`='".$date."',`product_id`=".$pid.",`store_id`=1,`parent_item_id`='',`is_virtual`=0,`sku`='".$sku."',`name`='".$name."',`description`='',`applied_rule_ids`='',`additional_data`='',`free_shipping`=0,`is_qty_decimal`=0,`no_discount`=0,`weight`='1.0000',`qty`=".$pqty.",`price`=".$price.",`base_price`=".$price.",`custom_price`='',`discount_percent`='0',`discount_amount`='0',`base_discount_amount`='0',`tax_percent`='0',`tax_amount`='0',`base_tax_amount`='0',`row_total`=".$price.",`base_row_total`=".$price.",`row_total_with_discount`='0',`row_weight`='1.0000',`product_type`='configurable',`base_tax_before_discount`='',`tax_before_discount`='',`original_custom_price`='',`redirect_url`='',`base_cost`='',`price_incl_tax`=".$price.",`base_price_incl_tax`=".$price.",`row_total_incl_tax`=".$price.",`base_row_total_incl_tax`=".$price.",`hidden_tax_amount`=0,`base_hidden_tax_amount`=0,`gift_message_id`='',`weee_tax_disposition`='0.0000',`weee_tax_row_disposition`='0.0000',`base_weee_tax_disposition`='0.0000',`base_weee_tax_row_disposition`='0.0000',`weee_tax_applied`='a:0:{}',`weee_tax_applied_amount`='0.0000',`weee_tax_applied_row_amount`='0.0000',`base_weee_tax_applied_amount`='0.0000',`base_weee_tax_applied_row_amnt`='' WHERE 1");
                     }
@@ -1415,7 +1410,7 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 
         $rowArray = $connectionRead->fetchRow($selectrows);
 
-        $count = $rowArray['items_count'];
+        $count = number_format($rowArray['items_qty'],0);
         $entity_id = $rowArray['entity_id'];
 
         $response = array();
@@ -1549,7 +1544,7 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
                 //$response[0]['speprice'] = number_format($_product->getSpecialPrice(),0,",",".");
                 $response[$z]['price_incl_tax'] = number_format($item['row_total_incl_tax'], 0, '', '.');
                 $submitqty = round($item['row_total_incl_tax'] / $item['price'],0);
-                $response[$z]['submitqty'] = $submitqty;
+                $response[$z]['submitqty'] = number_format($item['qty'], 0);
                 $total += $item['row_total_incl_tax'];
             } else {
                 $size = explode('(', $item['name']);
@@ -1728,16 +1723,16 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 
         $item_id = number_format($items['parent_item_id'],0);
 
-        /*if($size !='')
+        if($size !='')
         {
-            $product = Mage::getModel('catalog/product')->load($items['product_id']);
+            $_product = Mage::getModel('catalog/product')->load($items['product_id']);
 
-            $stock = Mage::getModel('cataloginventory/stock_item')->loadByProduct($product);
+            $stock = Mage::getModel('cataloginventory/stock_item')->loadByProduct($_product);
 
-            print_r($stock->getData()); exit;
+            $pqty = $stock->getData('qty');
         }
         else
-        {*/
+        {
             $_product = Mage::getModel('catalog/product')->load($pid);
 
             $pqty = 0;
@@ -1762,7 +1757,14 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
                     $pqty = (int)Mage::getModel('cataloginventory/stock_item')->loadByProduct($_product)->getQty();
                 }
             }
-        //}
+        }
+
+        $selectArr = $connectionRead->select()
+            ->from('sales_flat_quote_item', array('*'))
+            ->where('item_id=?', $item_id);
+
+        $rowArray = $connectionRead->fetchRow($selectArr);
+        $qtycount = number_format($rowArray['qty'],0);
 
         $response = array();
 
@@ -1777,18 +1779,11 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 
         if($checkqty > $pqty)
         {
-            $response['msg'] = 'The maximum quantity allowed for purchase is '.$pqty;
+            $response['msg'] = 'The maximum quantity allowed for purchase is '.number_format($pqty,0);
             $response['status'] = '0';
             echo json_encode($response);
             exit;
         }
-
-        $selectArr = $connectionRead->select()
-            ->from('sales_flat_quote_item', array('*'))
-            ->where('item_id=?', $item_id);
-
-        $rowArray = $connectionRead->fetchRow($selectArr);
-        $qtycount = number_format($rowArray['qty'],0);
 
         $price = $_product->getSpecialPrice();
 
@@ -1796,10 +1791,32 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 
         $connection = Mage::getSingleton('core/resource')->getConnection('core_write');
 
-        $connection->query("update sales_flat_quote_item set qty = '".$checkqty."', price = '".$total."', base_price = '".$total."', row_total = '".$total."', base_row_total = '".$total."',price_incl_tax = '".$total."',base_price_incl_tax = '".$total."',row_total_incl_tax = '".$total."',base_row_total_incl_tax = '".$total."'  WHERE item_id = ".$item_id);
+        $connection->query("update sales_flat_quote_item set qty = '".$checkqty."', row_total = '".$total."', base_row_total = '".$total."',price_incl_tax = '".$total."',base_price_incl_tax = '".$total."',row_total_incl_tax = '".$total."',base_row_total_incl_tax = '".$total."'  WHERE item_id = ".$item_id);
+
+        $connectionReads = Mage::getSingleton('core/resource')->getConnection('core_read');
+
+        $selects = $connectionReads->select()
+            ->from('sales_flat_quote', array('*'))
+            ->where('entity_id=?', $entity_id);
+
+        $itemss = $connectionRead->fetchRow($selects);
+
+        if($click_val == 'plus')
+        {
+            $rowqty = $itemss['items_qty'] + $qty;
+        }
+        else
+        {
+            $rowqty = $itemss['items_qty'] - $qty;
+        }
+
+        if($rowqty == 1)
+        {
+            $rowcount = 1;
+        }
 
         $connectionwrite = Mage::getSingleton('core/resource')->getConnection('core_write');
-        $connectionwrite->query("update sales_flat_quote set items_qty = '".$checkqty."', grand_total = '".$total."', base_grand_total = '".$total."', subtotal = '".$total."', base_subtotal = '".$total."' WHERE entity_id = ".$entity_id);
+        $connectionwrite->query("update sales_flat_quote set items_qty = '".$rowqty."', grand_total = '".$total."', base_grand_total = '".$total."', subtotal = '".$total."', base_subtotal = '".$total."' WHERE entity_id = ".$entity_id);
 
         $response['msg'] = 'Updated';
         $response['status'] = 1;
@@ -2276,6 +2293,9 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 
         $rowArray = $connectionRead->fetchAll($select);
 
+        //$rowArray[value] = 'freeshipping';
+        //$rowArray[label] = 'Promo Pengiriman (freeshipping)';
+
         $response['data'] = $rowArray;
         $response['msg'] = '';
         $response['status'] = 1;
@@ -2290,6 +2310,8 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
                 $_title = $_code;
 
             $options[] = array('value' => $_code, 'label' => $_title . " ($_code)");
+
+            print_r($options);
         }*/
     }
 
@@ -2312,6 +2334,8 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
         $i=0;
         foreach ($payments as $paymentCode=>$paymentModel) {
 
+            //$paymentid = Mage::getStoreConfig('payment/'.$paymentCode.'/id');
+
             $paymentTitle = Mage::getStoreConfig('payment/'.$paymentCode.'/title');
 
             $paymentHtml = Mage::getStoreConfig('payment/'.$paymentCode.'/instructions');
@@ -2319,6 +2343,7 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
             $html = $this->getLayout()->createBlock('cms/block')->setBlockId($paymentHtml)->toHtml();
 
             $response[$i] = array(
+                //'id'     => $paymentid,
                 'label'   => $paymentTitle,
                 'value' => $paymentCode,
                 'html'  => $html
@@ -2582,10 +2607,9 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 
         /*$selectrows = "SELECT `sales_flat_quote`.* FROM `sales_flat_quote` WHERE customer_id= ".$uid." AND is_active = '1' AND COALESCE(reserved_order_id, '') = ''";
 
-        $rowArray = $connectionRead->fetchAll($selectrows);*/
+        $rowArray = $connectionRead->fetchRow($selectrows);*/
 
         $response = array();
-        $j=0;
 
         $select = $connectionRead->select()
             ->from('sales_flat_quote_item', array('*'))
@@ -2639,7 +2663,7 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
                 //$response[0]['speprice'] = number_format($_product->getSpecialPrice(),0,",",".");
                 $response[$z]['price_incl_tax'] = number_format($item['row_total_incl_tax'], 0, '', '.');
                 $submitqty = round($item['row_total_incl_tax'] / $item['price'],0);
-                $response[$z]['submitqty'] = $submitqty;
+                $response[$z]['submitqty'] = number_format($item['qty'], 0);
                 $total += $item['row_total_incl_tax'];
             } else {
                 $size = explode('(', $item['name']);
@@ -2698,11 +2722,11 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
         {
             for($x=0;$x<count($sku);$x++)
             {
-                $product = Mage::getModel('catalog/product')->loadByAttribute('sku', $sku[$x]);
+                //$product = Mage::getModel('catalog/product')->loadByAttribute('sku', $sku[$x]);
 
-                $id = $product->getData('entity_id');
+                $product_id = Mage::getModel("catalog/product")->getIdBySku($sku[$x]);
 
-                $_product = Mage::getModel('catalog/product')->load($id);
+                $_product = Mage::getModel('catalog/product')->load($product_id);
 
                 $stock = Mage::getModel('cataloginventory/stock_item')->loadByProduct($_product);
 
@@ -2711,8 +2735,8 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
                     $response[$sku[$x]]['msg'] = '';
                     $response[$sku[$x]]['status'] = 1;
                 }
-                else{
-                    $response[$sku[$x]]['msg'] = '';
+                else {
+                    $response[$sku[$x]]['msg'] = 'Out of stock';
                     $response[$sku[$x]]['status'] = 0;
                 }
             }
@@ -2720,5 +2744,17 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 
         echo json_encode($response);
         exit;
+    }
+
+
+    public function finalpaymentAction()
+    {
+        $client = new SoapClient(Mage::getBaseUrl().'api/?wsdl=1'); //replace "www.yourownaddressurl.com" with your own merchant URL
+        $session = $client->login('tester', 'K200hendra'); // replace with username, password you have created on Magento Admin - SOAP/XML-RPC - Users
+        $arr = array(array('product_id'=>'123807','qty'=>'1'),array('product_id'=>'123808','qty'=>'1'));
+        $param = json_encode($arr);
+
+        $result = $client->call($session, 'icubeaddtocart.geturl', $param);
+        var_dump($result);
     }
 }
