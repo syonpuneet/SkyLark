@@ -2751,7 +2751,7 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
     {
         $client = new SoapClient(Mage::getBaseUrl().'api/?wsdl=1'); //replace "www.yourownaddressurl.com" with your own merchant URL
         $session = $client->login('tester', 'K200hendra'); // replace with username, password you have created on Magento Admin - SOAP/XML-RPC - Users
-        $arr = array(array('product_id'=>'123807','qty'=>'1'),array('product_id'=>'123808','qty'=>'1'));
+        $arr = array(array('product_id'=>'65699','qty'=>'1'));
         $param = json_encode($arr);
 
         $result = $client->call($session, 'icubeaddtocart.geturl', $param);
