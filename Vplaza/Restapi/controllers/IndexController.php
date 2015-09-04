@@ -528,9 +528,62 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 		echo json_encode($response);
 		exit;
 	}
-	
+
+    public function forgotPassAction()
+    {
+        $email = $this->getRequest()->getPost('email');
+
+        $token = $this->getRequest()->getPost('token');
+
+        /*if($this->tokenval() != $token)
+        {
+            $response['msg'] = 'You are not authorized to access this';
+            $response['status'] = '1';
+            echo json_encode($response);
+            exit;
+        }*/
+
+        $websiteId = Mage::app()->getWebsite()->getId();
+        $store = Mage::app()->getStore();
+
+        $customer = Mage::getModel("customer/customer");
+
+        $account = Mage::getModel("customer/account");
+
+        $customer->setWebsiteId($websiteId)
+            ->setStore($store);
+
+        $customer->loadByEmail($email);
+        if ($customer->getId()) {
+            $newResetPasswordLinkToken = $newResetPasswordLinkToken =  Mage::helper('customer')->generateResetPasswordLinkToken();
+            $customer->changeResetPasswordLinkToken($newResetPasswordLinkToken);
+            $customer->sendPasswordResetConfirmationEmail();
+
+            $response['msg'] = 'Check your email to reset your password';
+            $response['status'] = 1;
+        }
+        else
+        {
+            $response['msg'] = 'Alamat email atau password anda salah.';
+            $response['status'] = 0;
+        }
+
+        /*try {
+            $login_customer_result = Mage::getModel('customer/customer')->setWebsiteId($websiteId)->authenticate($email);
+
+            $validate = 1;
+        }
+        catch(Exception $ex) {
+            $response['msg'] = 'Error : '.$ex->getMessage();
+            $response['status'] = 0;
+        }*/
+
+        echo json_encode($response);
+        exit;
+    }
+
 	/**
-	* Main Cateogries 
+	* Main Cateogries
  	*/
 	public function categoriesAction()
 	{
@@ -1075,6 +1128,7 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 
                 $response[$i]['event_start'] = strtotime($eventEnd);
                 $response[$i]['event_end'] = strtotime(date("Y-m-d H:i:s", Mage::getModel('core/date')->timestamp(time())));
+                $response[$i]['current_time'] = time();
                 $dateDiff = floor(($nowEvent - $newEnd) / (60 * 60 * 24));
                 $eventLastDay = '';
                 if ($dateDiff >= -1)
@@ -2749,12 +2803,18 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 
     public function finalpaymentAction()
     {
-        $client = new SoapClient(Mage::getBaseUrl().'api/?wsdl=1'); //replace "www.yourownaddressurl.com" with your own merchant URL
-        $session = $client->login('tester', 'K200hendra'); // replace with username, password you have created on Magento Admin - SOAP/XML-RPC - Users
-        $arr = array(array('product_id'=>'65699','qty'=>'1'));
+        $pid = $this->getRequest()->getPost('pid');
+        $pqty = $this->getRequest()->getPost('qty');
+        //$size = $this->getRequest()->getPost('size');
+
+        //$client = new SoapClient(Mage::getBaseUrl().'api/?wsdl=1'); //replace "www.yourownaddressurl.com" with your own merchant URL
+        $client = new SoapClient('http://dev.vipplaza.co.id/index.php/api/?wsdl'); //replace "www.yourownaddressurl.com" with your own merchant URL
+        $session = $client->login('mobileapp_skylark', 'mobileapp_skylark_123'); // replace with username, password you have created on Magento Admin - SOAP/XML-RPC - Users
+        $arr = array(array('product_id'=>$pid,'qty'=>$pqty));
         $param = json_encode($arr);
 
         $result = $client->call($session, 'icubeaddtocart.geturl', $param);
-        var_dump($result);
+
+        echo json_encode($result['value']);
     }
 }
