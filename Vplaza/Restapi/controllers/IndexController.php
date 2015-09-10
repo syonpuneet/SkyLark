@@ -1195,8 +1195,8 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
         $items = array();
         foreach ($rowItems as $item) {
             if ($item['price'] != 0) {
-                $qty = number_format($item['qty'],0);
-                $qtycount += $qty;
+                $qty2 = number_format($item['qty'],0);
+                $qtycount += $qty2;
             }
         }
 
@@ -1258,6 +1258,14 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
                             );
                             //$params['options'][$productAttribute['attribute_id']] = $attribute['value_index'];
                         }
+                    }
+                }
+                else{
+                    foreach ($productAttribute['values'] as $attribute) {
+                        $params['super_attribute'] = array(
+                            $productAttribute['attribute_id'] => $attribute['value_index']
+                        );
+                        //$params['options'][$productAttribute['attribute_id']] = $attribute['value_index'];
                     }
                 }
             }
@@ -1775,8 +1783,6 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 
         $items = $connectionRead->fetchRow($select);
 
-        $item_id = number_format($items['parent_item_id'],0);
-
         if($size !='')
         {
             $_product = Mage::getModel('catalog/product')->load($items['product_id']);
@@ -1812,6 +1818,36 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
                 }
             }
         }
+
+        if($pqty == 0)
+        {
+            $_product = Mage::getModel('catalog/product')->load($pid);
+
+            $pqty = 0;
+            $min = (float)Mage::getModel('cataloginventory/stock_item')->loadByProduct($_product)->getNotifyStockQty();
+
+            if ($_product->isSaleable()) {
+                if ($_product->getTypeId() == "configurable") {
+                    $associated_products = $_product->loadByAttribute('sku', $_product->getSku())->getTypeInstance()->getUsedProducts();
+                    foreach ($associated_products as $assoc){
+                        $assocProduct = Mage::getModel('catalog/product')->load($assoc->getId());
+                        $pqty += (int)Mage::getModel('cataloginventory/stock_item')->loadByProduct($assocProduct)->getQty();
+                    }
+                } elseif ($_product->getTypeId() == 'grouped') {
+                    $pqty = $min + 1;
+                } elseif ($_product->getTypeId() == 'bundle') {
+                    $associated_products = $_product->getTypeInstance(true)->getSelectionsCollection(
+                        $_product->getTypeInstance(true)->getOptionsIds($_product), $_product);
+                    foreach($associated_products as $assoc) {
+                        $pqty += Mage::getModel('cataloginventory/stock_item')->loadByProduct($assoc)->getQty();
+                    }
+                } else {
+                    $pqty = (int)Mage::getModel('cataloginventory/stock_item')->loadByProduct($_product)->getQty();
+                }
+            }
+        }
+
+        $item_id = number_format($items['parent_item_id'],0);
 
         $selectArr = $connectionRead->select()
             ->from('sales_flat_quote_item', array('*'))
@@ -2807,14 +2843,14 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
         $pqty = $this->getRequest()->getPost('qty');
         //$size = $this->getRequest()->getPost('size');
 
-        //$client = new SoapClient(Mage::getBaseUrl().'api/?wsdl=1'); //replace "www.yourownaddressurl.com" with your own merchant URL
-        $client = new SoapClient('http://dev.vipplaza.co.id/index.php/api/?wsdl'); //replace "www.yourownaddressurl.com" with your own merchant URL
-        $session = $client->login('mobileapp_skylark', 'mobileapp_skylark_123'); // replace with username, password you have created on Magento Admin - SOAP/XML-RPC - Users
+        $client = new SoapClient(Mage::getBaseUrl().'api/?wsdl=1'); //replace "www.yourownaddressurl.com" with your own merchant URL
+        //$client = new SoapClient('http://dev.vipplaza.co.id/index.php/api/?wsdl'); //replace "www.yourownaddressurl.com" with your own merchant URL
+        $session = $client->login('tester', 'hendra123'); // U:mobileapp_skylark P:mobileapp_skylark_123 replace with username, password you have created on Magento Admin - SOAP/XML-RPC - Users
         $arr = array(array('product_id'=>$pid,'qty'=>$pqty));
         $param = json_encode($arr);
-
+        
         $result = $client->call($session, 'icubeaddtocart.geturl', $param);
 
-        echo json_encode($result['value']);
+        echo json_encode($result);
     }
 }
