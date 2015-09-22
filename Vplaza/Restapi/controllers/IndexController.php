@@ -1229,9 +1229,9 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 
         $checkqty = $qtycount + $pqty;
 
-        if($checkqty > $qty)
+        if($checkqty > 2)
         {
-            $response['msg'] = 'The maximum quantity allowed for purchase is '.$qty;
+            $response['msg'] = 'The maximum quantity allowed for purchase is 2';
             $response['status'] = '0';
             echo json_encode($response);
             exit;
@@ -1319,7 +1319,7 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
                             }
                         }
 
-                        if($newsize == $size)
+                        if(trim($newsize) == trim($size))
                         {
                             $connections = Mage::getSingleton('core/resource')->getConnection('core_write');
                             $date = date('Y-m-d h:i:s');
