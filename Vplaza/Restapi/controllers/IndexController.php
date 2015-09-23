@@ -1229,13 +1229,13 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 
         $checkqty = $qtycount + $pqty;
 
-        if($checkqty > 2)
+        /*if($checkqty > 2)
         {
             $response['msg'] = 'The maximum quantity allowed for purchase is 2';
             $response['status'] = '0';
             echo json_encode($response);
             exit;
-        }
+        }*/
 
         $params['product_id'] = $pid;
         $params['qty'] = $pqty;
@@ -1289,7 +1289,7 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
             {
                 $entity_id = $rowArray['entity_id'];
                 $db_write = Mage::getSingleton('core/resource')->getConnection('core_read');
-                $sqlQuerys = "SELECT * FROM sales_flat_quote_item WHERE quote_id =".$rowArray['entity_id']." AND product_id = ".$pid;
+                $sqlQuerys = "SELECT * FROM sales_flat_quote_item WHERE quote_id =".$rowArray['entity_id']." AND product_id = ".$pid." ORDER BY item_id DESC";
                 $rowArrays = $db_write->fetchRow($sqlQuerys);
 
                 if(!empty($rowArrays))
@@ -1298,6 +1298,12 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
                     {
                         $sqlQueryss = "SELECT * FROM sales_flat_quote_item WHERE parent_item_id =".$rowArrays['item_id'];
                         $rowArrayss = $db_write->fetchRow($sqlQueryss);
+
+                        //check Quantity count
+                        //$sqlQuantity = "SELECT * FROM sales_flat_quote_item WHERE item_id =".$rowArrays['parent_item_id'];
+                        //$rowArrayqnt = $db_write->fetchRow($sqlQuantity);
+
+                        $checkqty = number_format($rowArrays['qty']) + $pqty;
 
                         $oldsize = explode('(', $rowArrayss['name']);
                         if(isset($oldsize[1])) {
@@ -1321,6 +1327,13 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 
                         if(trim($newsize) == trim($size))
                         {
+                            if($checkqty > 2)
+                            {
+                                $response['msg'] = 'The maximum quantity allowed for purchase is 2';
+                                $response['status'] = '0';
+                                echo json_encode($response);
+                                exit;
+                            }
                             $connections = Mage::getSingleton('core/resource')->getConnection('core_write');
                             $date = date('Y-m-d h:i:s');
                             $totqty = $rowArrays['qty'] + $pqty;
@@ -1359,15 +1372,99 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 
                     if($rowArrays['product_type'] == 'simple')
                     {
-                        $connections = Mage::getSingleton('core/resource')->getConnection('core_write');
-                        $date = date('Y-m-d h:i:s');
-                        $totqty = $rowArrays['qty'] + $pqty;
-                        $totprice = $_product->getSpecialPrice() * $totqty;
-                        $connections->query("UPDATE `sales_flat_quote_item` SET `updated_at`='".$date."',`qty`=".$totqty.",`row_total`=".$totprice.",`base_row_total`=".$totprice.",`price_incl_tax`=".$totprice.",`base_price_incl_tax`=".$totprice.",`row_total_incl_tax`=".$totprice.",`base_row_total_incl_tax`=".$totprice." WHERE product_id =".$pid." AND product_type ='simple'");
+                        if($rowArrays['parent_item_id'] != NULL)
+                        {
+                            //check Quantity count
+                            $sqlQueryss = "SELECT * FROM sales_flat_quote_item WHERE item_id =".$rowArrays['parent_item_id'];
+                            $rowArrayss = $db_write->fetchRow($sqlQueryss);
 
-                        $rowqty = $rowArray['items_qty'] + $pqty;
-                        $connectionquote = Mage::getSingleton('core/resource')->getConnection('core_write');
-                        $connectionquote->query("UPDATE `sales_flat_quote` SET `items_qty`=".$rowqty." WHERE `entity_id`=".$rowArray['entity_id']);
+                            $checkqty = number_format($rowArrayss['qty']) + $pqty;
+
+                            $oldsize = explode('(', $rowArrays['name']);
+                            if(isset($oldsize[1])) {
+                                $newsize = str_replace(' )', '', $oldsize[1]);
+                            }
+                            else{
+                                $oldsize = explode('-', $rowArrays['name']);
+                                if(isset($oldsize[1]))
+                                {
+                                    $newsize = $oldsize[1];
+                                }
+                                else
+                                {
+                                    $oldsize = explode('\'', $rowArrays['name']);
+                                    if(isset($oldsize[1]))
+                                    {
+                                        $newsize = $size[1];
+                                    }
+                                }
+                            }
+
+                            if(trim($newsize) == trim($size))
+                            {
+                                if($checkqty > 2)
+                                {
+                                    $response['msg'] = 'The maximum quantity allowed for purchase is 2';
+                                    $response['status'] = '0';
+                                    echo json_encode($response);
+                                    exit;
+                                }
+                                $connections = Mage::getSingleton('core/resource')->getConnection('core_write');
+                                $date = date('Y-m-d h:i:s');
+                                $totqty = $rowArrays['qty'] + $pqty;
+                                $totprice = $_product->getSpecialPrice() * $totqty;
+                                $connections->query("UPDATE `sales_flat_quote_item` SET `updated_at`='".$date."',`qty`=".$totqty.",`row_total`=".$totprice.",`base_row_total`=".$totprice.",`price_incl_tax`=".$totprice.",`base_price_incl_tax`=".$totprice.",`row_total_incl_tax`=".$totprice.",`base_row_total_incl_tax`=".$totprice." WHERE product_id =".$pid." AND product_type ='configurable'");
+
+                                $rowqty = $rowArray['items_qty'] + $pqty;
+                                $connectionquote = Mage::getSingleton('core/resource')->getConnection('core_write');
+                                $connectionquote->query("UPDATE `sales_flat_quote` SET `items_qty`=".$rowqty." WHERE `entity_id`=".$rowArray['entity_id']);
+                            }
+                            else
+                            {
+                                $connectionWrit = Mage::getSingleton('core/resource')->getConnection('core_write');
+
+                                $date = date('Y-m-d h:i:s');
+                                $sku = $_product->getSku();
+                                $name = $_product->getName();
+                                $price = $_product->getSpecialPrice() * $pqty;
+                                $connectionWrit->query("INSERT INTO `sales_flat_quote_item`(`quote_id`, `created_at`, `updated_at`, `product_id`, `store_id`, `is_virtual`, `sku`, `name`, `weight`, `qty`, `price`, `base_price`, `row_total`, `base_row_total`, `row_weight`, `product_type`, `price_incl_tax`, `base_price_incl_tax`, `row_total_incl_tax`, `base_row_total_incl_tax`, `weee_tax_disposition`, `weee_tax_row_disposition`, `base_weee_tax_disposition`, `base_weee_tax_row_disposition`, `weee_tax_applied`, `weee_tax_applied_amount`, `weee_tax_applied_row_amount`, `base_weee_tax_applied_amount`, `base_weee_tax_applied_row_amnt`) VALUES (".$rowArray['entity_id'].",'".$date."','".$date."',".$pid.",'1','0','".$sku."','".$name."','1.0000',".$pqty.",".$price.",".$price.",".$price.",".$price.",'1.0000','configurable',".$price.",".$price.",".$price.",".$price.",'0.0000','0.0000','0.0000','0.0000','a:0:{}','0.0000','0.0000','0.0000','')");
+
+                                $db_write = Mage::getSingleton('core/resource')->getConnection('core_write');
+                                $sqlQuery = "SELECT item_id FROM sales_flat_quote_item ORDER BY item_id DESC LIMIT 1;";
+                                $rowArrayes = $db_write->fetchRow($sqlQuery);
+                                $item_id = $rowArrayes['item_id'];
+
+                                $connectionWri = Mage::getSingleton('core/resource')->getConnection('core_write');
+                                $sname = $name.'( '.$size.' )';
+                                $connectionWri->query("INSERT INTO `sales_flat_quote_item` (`quote_id`, `created_at`, `updated_at`, `product_id`, `store_id`, `parent_item_id`, `is_virtual`, `sku`, `name`, `weight`, `qty`, `price`, `base_price`, `row_total`, `base_row_total`, `row_weight`, `product_type`, `price_incl_tax`, `base_price_incl_tax`, `row_total_incl_tax`, `base_row_total_incl_tax`, `weee_tax_disposition`, `weee_tax_row_disposition`, `base_weee_tax_disposition`, `base_weee_tax_row_disposition`, `weee_tax_applied`, `weee_tax_applied_amount`, `weee_tax_applied_row_amount`, `base_weee_tax_applied_amount`, `base_weee_tax_applied_row_amnt`) VALUES (".$rowArray['entity_id'].",'".$date."','".$date."',".$pid.",'1',".$item_id.",'0','".$sku."','".$sname."','1.0000',".$pqty.",'0.0000','0.0000','0.0000','0.0000','1.0000','simple','0.0000','0.0000','0.0000','0.0000','0.0000','0.0000','0.0000','0.0000','a:0:{}','0.0000','0.0000','0.0000','')");
+
+                                $rowqty = $rowArray['items_qty'] + $pqty;
+                                $rowcount = $rowArray['items_count'] + $pqty;
+                                $connectionquote = Mage::getSingleton('core/resource')->getConnection('core_write');
+                                $connectionquote->query("UPDATE `sales_flat_quote` SET `items_count`=".$rowcount.", `items_qty`=".$rowqty." WHERE `entity_id`=".$rowArray['entity_id']);
+                            }
+                        }
+                        else
+                        {
+                            echo 'else'; exit;
+                            if($checkqty > 2)
+                            {
+                                $response['msg'] = 'The maximum quantity allowed for purchase is 2';
+                                $response['status'] = '0';
+                                echo json_encode($response);
+                                exit;
+                            }
+                            $connections = Mage::getSingleton('core/resource')->getConnection('core_write');
+                            $date = date('Y-m-d h:i:s');
+                            $totqty = $rowArrays['qty'] + $pqty;
+                            $totprice = $_product->getSpecialPrice() * $totqty;
+                            $connections->query("UPDATE `sales_flat_quote_item` SET `updated_at`='".$date."',`qty`=".$totqty.",`row_total`=".$totprice.",`base_row_total`=".$totprice.",`price_incl_tax`=".$totprice.",`base_price_incl_tax`=".$totprice.",`row_total_incl_tax`=".$totprice.",`base_row_total_incl_tax`=".$totprice." WHERE product_id =".$pid." AND product_type ='simple'");
+
+                            $rowqty = $rowArray['items_qty'] + $pqty;
+                            $connectionquote = Mage::getSingleton('core/resource')->getConnection('core_write');
+                            $connectionquote->query("UPDATE `sales_flat_quote` SET `items_qty`=".$rowqty." WHERE `entity_id`=".$rowArray['entity_id']);
+                        }
+
                     }
                 }
                 else
