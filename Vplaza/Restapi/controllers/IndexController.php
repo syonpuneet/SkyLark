@@ -1241,6 +1241,7 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
         $params['qty'] = $pqty;
 
         if ($_product->getTypeId() == "configurable" && isset($params['cptions'])) {
+
             // Get configurable options
             $productAttributeOptions = $_product->getTypeInstance(true)
                 ->getConfigurableAttributesAsArray($_product);
@@ -1262,10 +1263,11 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
                 }
                 else{
                     foreach ($productAttribute['values'] as $attribute) {
-                        $params['super_attribute'] = array(
-                            $productAttribute['attribute_id'] => $attribute['value_index']
-                        );
-                        //$params['options'][$productAttribute['attribute_id']] = $attribute['value_index'];
+                        if (trim($size) == $attribute['store_label']) {
+                            $params['super_attribute'] = array(
+                                $productAttribute['attribute_id'] => $attribute['value_index']
+                            );
+                        }
                     }
                 }
             }
@@ -2841,54 +2843,75 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 
     public function finalpaymentAction()
     {
-        $pid = $this->getRequest()->getPost('pid');
-        $pqty = $this->getRequest()->getPost('qty');
-        $size = $this->getRequest()->getPost('size');
-        $params['cptions']['size_clothes'] = $size;
+        $uid = $this->getRequest()->getPost('uid');
+        $finaldata = $this->getRequest()->getPost('finaldata');
 
-        $_product = Mage::getModel('catalog/product')->load($pid);
+        $prArr = json_decode($finaldata);
 
-        if ($_product->getTypeId() == "configurable" && isset($params['cptions'])) {
-            // Get configurable options
-            $productAttributeOptions = $_product->getTypeInstance(true)
-                ->getConfigurableAttributesAsArray($_product);
+        $customerData = Mage::getModel('customer/customer')->load($uid)->getData();
 
-            foreach ($productAttributeOptions as $productAttribute) {
-                $attributeCode = $productAttribute['attribute_code'];
+        $finalArr = array();
+        $finalArr[0]['email'] = $customerData['email'];
 
-                if (isset($params['cptions'][$attributeCode])) {
-                    $optionValue = $params['cptions'][$attributeCode];
+        $i=1;
+        foreach($prArr as $pr)
+        {
+            $_product = Mage::getModel('catalog/product')->load($pr->product_id);
+            $params['cptions']['size_clothes'] = $pr->size;
+            if ($_product->getTypeId() == "configurable" && isset($params['cptions'])) {
+                // Get configurable options
+                $productAttributeOptions = $_product->getTypeInstance(true)
+                    ->getConfigurableAttributesAsArray($_product);
 
-                    foreach ($productAttribute['values'] as $attribute) {
-                        if ($optionValue == $attribute['store_label']) {
-                            $params['super_attribute'] = array(
-                                $productAttribute['attribute_id'] => $attribute['value_index']
-                            );
-                            //$params['options'][$productAttribute['attribute_id']] = $attribute['value_index'];
+                foreach ($productAttributeOptions as $productAttribute) {
+                    $attributeCode = $productAttribute['attribute_code'];
+
+                    if (isset($params['cptions'][$attributeCode])) {
+                        $optionValue = $params['cptions'][$attributeCode];
+
+                        foreach ($productAttribute['values'] as $attribute) {
+                            if ($optionValue == $attribute['store_label']) {
+                                $params['super_attribute'] = array(
+                                    $productAttribute['attribute_id'] => $attribute['value_index']
+                                );
+                            }
+                        }
+                    }
+                    else{
+                        foreach ($productAttribute['values'] as $attribute) {
+
+                            if (trim($pr->size) == $attribute['store_label']) {
+
+                                $params['super_attribute'] = array(
+                                    $productAttribute['attribute_id'] => $attribute['value_index']
+                                );
+                            }
                         }
                     }
                 }
-                else{
-                    foreach ($productAttribute['values'] as $attribute) {
-                        $params['super_attribute'] = array(
-                            $productAttribute['attribute_id'] => $attribute['value_index']
-                        );
-                    }
-                }
+
+                $childProduct = Mage::getModel('catalog/product_type_configurable')->getProductByAttributes($params['super_attribute'], $_product);
+
+                $finalArr[$i]['product_id'] = $childProduct->getData('entity_id');
+                $finalArr[$i]['qty'] = $pr->qty;
+            }
+            else{
+                $finalArr[$i]['product_id'] = $pr->product_id;
+                $finalArr[$i]['qty'] = $pr->qty;
             }
 
-            $childProduct = Mage::getModel('catalog/product_type_configurable')->getProductByAttributes($params['super_attribute'], $_product);
-
-            $pid = $childProduct->getData('entity_id');
+            $i++;
         }
 
         $client = new SoapClient(Mage::getBaseUrl().'api/?wsdl=1'); //replace "www.yourownaddressurl.com" with your own merchant URL
         //$client = new SoapClient('http://dev.vipplaza.co.id/index.php/api/?wsdl'); //replace "www.yourownaddressurl.com" with your own merchant URL
         $session = $client->login('tester', 'hendra123'); // U:mobileapp_skylark P:mobileapp_skylark_123 replace with username, password you have created on Magento Admin - SOAP/XML-RPC - Users
-        $arr = array(array('product_id'=>$pid,'qty'=>$pqty));
+        //$arr = array(array('email'=>'a@a.com'),array('product_id'=>138006,'qty'=>1),array('product_id'=>125648,'qty'=>1));
+        $arr = $finalArr;
+
         $param = json_encode($arr);
-		
-		$result = $client->call($session, 'icubeaddtocart.geturl', $param);
+
+        $result = $client->call($session, 'icubeaddtocart.geturl', $param);
 		
         echo json_encode($result);
     }
