@@ -1448,7 +1448,6 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
                         }
                         else
                         {
-                            echo 'else'; exit;
                             if($checkqty > 2)
                             {
                                 $response['msg'] = 'The maximum quantity allowed for purchase is 2';
@@ -2905,7 +2904,7 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 
         $client = new SoapClient(Mage::getBaseUrl().'api/?wsdl=1'); //replace "www.yourownaddressurl.com" with your own merchant URL
         //$client = new SoapClient('http://dev.vipplaza.co.id/index.php/api/?wsdl'); //replace "www.yourownaddressurl.com" with your own merchant URL
-        $session = $client->login('tester', 'hendra123'); // U:mobileapp_skylark P:mobileapp_skylark_123 replace with username, password you have created on Magento Admin - SOAP/XML-RPC - Users
+        $session = $client->login('mobileapp_skylark', 'mobileapp_skylark_123'); // U:mobileapp_skylark P:mobileapp_skylark_123 replace with username, password you have created on Magento Admin - SOAP/XML-RPC - Users
         //$arr = array(array('email'=>'a@a.com'),array('product_id'=>138006,'qty'=>1),array('product_id'=>125648,'qty'=>1));
         $arr = $finalArr;
 
@@ -2914,5 +2913,6 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
         $result = $client->call($session, 'icubeaddtocart.geturl', $param);
 		
         echo json_encode($result);
+        exit;
     }
 }
