@@ -646,6 +646,7 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 		$response = array();
 
         $token = $this->getRequest()->getPost('token');
+        $setpage = $this->getRequest()->getPost('setpage');
 
         if($this->tokenval() != $token)
         {
@@ -654,15 +655,29 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
             echo json_encode($response);
             exit;
         }
-		
+
 		$now            = date("Y-m-d H:i:s", Mage::getModel('core/date')->timestamp(time()));
         $dateEvent      = explode(" ", $now);
+
+        //Get count
+        $allEvent      = Mage::getModel('vipevent/vipevent')->getCollection()
+            ->addFieldToFilter('event_start', array('lteq' => $now ))
+            ->addFieldToFilter('event_end', array('gteq' => $now ));
+
+        $entityAttr = Mage::getSingleton('core/resource')->getTableName('catalog_category_entity');
+        $allEvent->getSelect()->join( array('cc'   => $entityAttr), 'cc.entity_id = main_table.category_id', array('cc.position'));
+        $allEvent->setOrder('cc.position', 'ASC');
+
+        $eventcount = count($allEvent);
+
 		$allEvents      = Mage::getModel('vipevent/vipevent')->getCollection()
                             ->addFieldToFilter('event_start', array('lteq' => $now ))
                             ->addFieldToFilter('event_end', array('gteq' => $now ))
-                            ->setCurPage(1);
-		
-		$limit  = 10;
+                            ->setCurPage($setpage)
+                            ->setPageSize(10);
+
+        $remaing = $eventcount - (10*$setpage);
+
 		$eventId = strtoupper($this->getRequest()->getPost('cat_name'));
 		
 		$eventCategory = Mage::getModel('vipevent/eventcategory')->getCollection()
@@ -704,7 +719,7 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 				
 				$i++;
 			}
-			
+
 			$data['msg'] = '';
 			$data['status'] = 1;
 		}
@@ -713,6 +728,15 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 			$data['msg'] = 'No products found';
 			$data['status'] = 0;
 		}
+
+        if($remaing > 0)
+        {
+            $data['remain'] = true;
+        }
+        else
+        {
+            $data['remain'] = false;
+        }
 		
 		/*$connection = Mage::getSingleton('core/resource')->getConnection('core_read');
 		
@@ -768,6 +792,7 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 		$price_order = $this->getRequest()->getPost('order_price');
 		$name_order = $this->getRequest()->getPost('order_name');
         $click_val = $this->getRequest()->getPost('click_val');
+        $setpage = $this->getRequest()->getPost('setpage');
 
         $token = $this->getRequest()->getPost('token');
 
@@ -809,13 +834,26 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
         $rowsArray = $connection->fetchRow($select);
 
 		$category = Mage::getModel('catalog/category')->load($catid);
+
+        $_product = Mage::getResourceModel('catalog/product_collection')
+            ->setStoreId(Mage::app()->getStore()->getId())
+            ->addCategoryFilter($category)
+            ->addAttributeToSort($click_val, $order_name)
+            ->addAttributeToSort($nextval, $order_price);
+
+        $productcount = count($_product);
+
 		$products = Mage::getResourceModel('catalog/product_collection')
         	->setStoreId(Mage::app()->getStore()->getId())
 			->addCategoryFilter($category)
 			->addAttributeToSort($click_val, $order_name)
-			->addAttributeToSort($nextval, $order_price);
+			->addAttributeToSort($nextval, $order_price)
+            ->setCurPage($setpage)
+            ->setPageSize(10);
 
 		$productmodel = Mage::getModel('catalog/product');
+
+        $remaing = $productcount - (10*$setpage);
 		
 		if(!empty($products))
 		{
@@ -886,6 +924,15 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 			$data['msg'] = 'No products found';
 			$data['status'] = 0;
 		}
+
+        if($remaing > 0)
+        {
+            $data['remain'] = true;
+        }
+        else
+        {
+            $data['remain'] = false;
+        }
 		
 		echo json_encode($data);
 	}
@@ -1089,6 +1136,7 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
         $response = array();
 
         $token = $this->getRequest()->getPost('token');
+        $setpage = $this->getRequest()->getPost('setpage');
 
         if($this->tokenval() != $token)
         {
@@ -1103,10 +1151,25 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
         $now = date("Y-m-d H:i:s", Mage::getModel('core/date')->timestamp(time()));
 
         $dateEvent = explode(" ", $now);
+
+        $allEvent = Mage::getModel('vipevent/vipevent')->getCollection()
+            ->addFieldToFilter('event_start', array('lteq' => $now ))
+            ->addFieldToFilter('event_end', array('gteq' => $now ));
+
+        $entityAttr = Mage::getSingleton('core/resource')->getTableName('catalog_category_entity');
+        $allEvent->getSelect()->join( array('cc'   => $entityAttr), 'cc.entity_id = main_table.category_id', array('cc.position'));
+        $allEvent->setOrder('cc.position', 'ASC');
+
+        $eventcount = count($allEvent);
+
         $allEvents = Mage::getModel('vipevent/vipevent')->getCollection()
             ->addFieldToFilter('event_start', array('lteq' => $now ))
             ->addFieldToFilter('event_end', array('gteq' => $now ))
-            ->setCurPage(1);
+            ->setCurPage($setpage);
+
+        $allEvents->setPageSize(10);
+
+        $remaing = $eventcount - (10*$setpage);
 
         $entityAttr = Mage::getSingleton('core/resource')->getTableName('catalog_category_entity');
         $allEvents->getSelect()->join( array('cc'   => $entityAttr), 'cc.entity_id = main_table.category_id', array('cc.position'));
@@ -1144,6 +1207,15 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
         {
             $data['msg'] = 'No products found';
             $data['status'] = 0;
+        }
+
+        if($remaing > 0)
+        {
+            $data['remain'] = true;
+        }
+        else
+        {
+            $data['remain'] = false;
         }
 
 		$data['data']= $response;
@@ -2880,7 +2952,6 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
                         foreach ($productAttribute['values'] as $attribute) {
 
                             if (trim($pr->size) == $attribute['store_label']) {
-
                                 $params['super_attribute'] = array(
                                     $productAttribute['attribute_id'] => $attribute['value_index']
                                 );
@@ -2891,7 +2962,16 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
 
                 $childProduct = Mage::getModel('catalog/product_type_configurable')->getProductByAttributes($params['super_attribute'], $_product);
 
-                $finalArr[$i]['product_id'] = $childProduct->getData('entity_id');
+                if(isset($childProduct) && !empty($childProduct))
+                {
+                    $finalArr[$i]['product_id'] = $childProduct->getData('entity_id');
+                }
+                else
+                {
+                    $finalArr[$i]['product_id'] = $pr->product_id;
+                }
+
+
                 $finalArr[$i]['qty'] = $pr->qty;
             }
             else{
