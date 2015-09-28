@@ -933,6 +933,8 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
         {
             $data['remain'] = false;
         }
+
+        $data['totalcount'] = $productcount;
 		
 		echo json_encode($data);
 	}
