@@ -2995,7 +2995,7 @@ class Vplaza_Restapi_IndexController extends Mage_Core_Controller_Front_Action{
         //ini_set('max_execution_time', 300);
 
         //$opt = array('trace'=>1,'encoding'=>'utf-8', 'exceptions' => 0);
-        $client = new SoapClient(Mage::getBaseUrl().'api/?wsdl=1'); //replace "www.yourownaddressurl.com" with your own merchant URL
+        $client = new SoapClient(Mage::getBaseUrl().'index.php/api/?wsdl=1'); //replace "www.yourownaddressurl.com" with your own merchant URL
         //$client = new SoapClient('http://dev.vipplaza.co.id/index.php/api/?wsdl'); //replace "www.yourownaddressurl.com" with your own merchant URL
         $session = $client->login('mobileapp_skylark', 'mobileapp_skylark_123'); // U:mobileapp_skylark P:mobileapp_skylark_123 replace with username, password you have created on Magento Admin - SOAP/XML-RPC - Users
         //$arr = array(array('email'=>'a@a.com'),array('product_id'=>138006,'qty'=>1),array('product_id'=>125648,'qty'=>1));
